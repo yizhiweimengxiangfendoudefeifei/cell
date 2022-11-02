@@ -92,3 +92,58 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 	}
 		
 }
+
+
+double referenceLine::calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3)
+{
+	double a, b, c, sinA, cosA, r, k;
+	a = sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+	b = sqrt((p2.x - p3.x) * (p2.x - p3.x) + (p2.y - p3.y) * (p2.y - p3.y));
+	c = sqrt((p3.x - p1.x) * (p3.x - p1.x) + (p3.y - p1.y) * (p3.y - p1.y));
+	cosA = (b * b + c * c - a * a) / (2 * b * c);
+	sinA = sqrt(1 - cosA * cosA);
+	r = 0.5 * a / sinA;//利用三角形内接圆和外接圆的关系和正余弦定理，求得圆的半径，进而得到曲率k
+	k = 1 / r;
+	return k;
+}
+
+
+void referenceLine::get_kappa(std::vector<std::pair<double, double>> center_point_xy_final)
+{
+	Point2d_s p1, p2, a, b, c;
+	p1.x = center_point_xy_final[0].first;
+	p1.y = center_point_xy_final[0].second;
+	p2.x = center_point_xy_final[1].first;
+	p2.y = center_point_xy_final[1].second;
+	RefPoint r;
+	for (int i = 0; i < this->RefPointCounter - 2; ++i)
+	{
+		a.x = center_point_xy_final[i].first;
+		a.y = center_point_xy_final[i].second;
+		b.x = center_point_xy_final[i + 1].first;
+		b.y = center_point_xy_final[i + 1].second;
+		c.x = center_point_xy_final[i + 2].first;
+		c.y = center_point_xy_final[i + 2].second;
+		double k = referenceLine::calculate_kappa(a, b, c);
+		RefPoint r;
+		r.x = a.x;
+		r.y = a.y;
+		r.kappa = k;
+		RefMsg.emplace_back(r);
+	}//将前n-2个点的信息存入vector
+	a.x = center_point_xy_final[RefPointCounter - 2].first;
+	a.y = center_point_xy_final[RefPointCounter - 2].second;
+	b.x = center_point_xy_final[RefPointCounter - 1].first;
+	b.y = center_point_xy_final[RefPointCounter - 1].second;
+	double k1 = calculate_kappa(a, b, p1);
+	r.x = a.x;
+	r.y = a.y;
+	r.kappa = k1;
+	RefMsg.emplace_back(r);
+	double k2 = calculate_kappa(b, p1, p2);
+	r.x = b.x;
+	r.y = b.y;
+	r.kappa = k2;
+	RefMsg.emplace_back(r);
+	//利用参考线中最后两个点和最初的两个点，获得每个RefPoint的曲率并存入RefMsg
+}

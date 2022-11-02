@@ -36,6 +36,7 @@
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Platform)\$(ProjectName)-$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_$(PlatformToolsetVersion)</TargetName>
+    <IncludePath>D:\code\Third-party Libraries\eigen-3.4.0;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

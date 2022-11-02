@@ -12,14 +12,14 @@ class control
 public:
 	control()=default;
 	~control()=default;
-	static void get_nearest_point_idx(const std::vector<std::pair<double, double>>& targetPath) {
+	static void get_nearest_point_idx(const std::vector<RefPoint>& targetPath) {
 		std::vector<double> pts;
 		for (size_t i = 0; i < targetPath.size(); ++i) {
-			pts.push_back(pow((double)targetPath[i].first, 2) + pow((double)targetPath[i].second, 2));
+			pts.push_back(pow((double)targetPath[i].x, 2) + pow((double)targetPath[i].y, 2));
 		}
 		point_index = std::min_element(pts.begin(), pts.end()) - pts.begin();
 	}
-	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+	static double calculateSteering(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
 		//std::vector<double> pts;
 		//for (size_t i = 0; i < targetPath.size(); ++i) {
 		//	pts.push_back(pow((double)targetPath[i].first, 2) + pow((double)targetPath[i].second, 2));
@@ -35,24 +35,35 @@ public:
 		// ÕÒµ½Ô¤ÃéµãµÄindex
 		for (; index < targetPath.size(); ++index) {
 			forwardIndex = index;
-			double distance = sqrtf((double)pow(targetPath[index].first, 2) +
-				pow((double)targetPath[index].second, 2));
+			double distance = sqrtf((double)pow(targetPath[index].x, 2) +
+				pow((double)targetPath[index].y, 2));
 			if (distance >= progDist) {
 				break;
 			}
 		}
 		double psi = (double)pEgo->yaw;// º½Ïò½Ç
-		double deltaAlfa = atan2(targetPath[forwardIndex].second,
-			targetPath[forwardIndex].first);// º½ÏòÆ«²î
-		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) + 
-			pow(targetPath[forwardIndex].first, 2)); // ºáÏòÆ«²î
+		double deltaAlfa = atan2(targetPath[forwardIndex].y,
+			targetPath[forwardIndex].x);// º½ÏòÆ«²î
+		double ld = sqrt(pow(targetPath[forwardIndex].y, 2) + 
+			pow(targetPath[forwardIndex].x, 2)); // ºáÏòÆ«²î
 		double steer = -atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180. / (1. * M_PI);
 
 		return steer;
 	}
 
-	static double calculateThrottleBreak(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
-		if (pEgo->speed * 3.6 > 20) {
+	static double calculateThrottleBreak(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+		auto this_kappa = targetPath[point_index].kappa;
+		double future_kappa;
+		if (point_index + 5 < targetPath.size()) {
+			future_kappa = targetPath[point_index + 5].kappa;
+		}
+		else {
+			future_kappa = targetPath[point_index + 5 - targetPath.size()].kappa;
+		}
+		
+		auto max_v = sqrt( (2 * 9.8 / (this_kappa > future_kappa ? this_kappa : future_kappa)));
+
+		if (pEgo->speed > max_v) {
 			return -1;
 		}
 		else {

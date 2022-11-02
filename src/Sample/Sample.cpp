@@ -74,15 +74,16 @@ void ModelOutput(UserData* userData) {
             }
             // 自车状态类，在这里写控制
             std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
+            auto targetPathWithKappa = referenceline.getRefMsg();
             //cout << "targetPath.size: " << targetPath.size() << endl;
             Ego* pEgo = nullptr;
             if (pGlobal->ego != nullptr) {
                 pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
-                control::get_nearest_point_idx(targetPath);
-                double steer = control::calculateSteering(targetPath, pEgo);
+                control::get_nearest_point_idx(targetPathWithKappa);
+                double steer = control::calculateSteering(targetPathWithKappa, pEgo);
                 cout << "steer: " << steer << endl;
 
-                double thr = control::calculateThrottleBreak(targetPath, pEgo);
+                double thr = control::calculateThrottleBreak(targetPathWithKappa, pEgo);
 
                 pEgoCtrl->time = userData->time;
                 pEgoCtrl->valid = 1;
