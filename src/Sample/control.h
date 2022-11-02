@@ -12,12 +12,19 @@ class control
 public:
 	control()=default;
 	~control()=default;
-	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+	static void get_nearest_point_idx(const std::vector<std::pair<double, double>>& targetPath) {
 		std::vector<double> pts;
 		for (size_t i = 0; i < targetPath.size(); ++i) {
 			pts.push_back(pow((double)targetPath[i].first, 2) + pow((double)targetPath[i].second, 2));
 		}
-		size_t index = std::min_element(pts.begin(), pts.end()) - pts.begin();// 距离主车距离最近的点的索引
+		point_index = std::min_element(pts.begin(), pts.end()) - pts.begin();
+	}
+	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+		//std::vector<double> pts;
+		//for (size_t i = 0; i < targetPath.size(); ++i) {
+		//	pts.push_back(pow((double)targetPath[i].first, 2) + pow((double)targetPath[i].second, 2));
+		//}
+		size_t index = point_index;// 距离主车距离最近的点的索引
 		std::cout << "index: " << index << std::endl;
 		size_t forwardIndex = 0;
 		double minProgDist = 0.5f;
@@ -44,10 +51,21 @@ public:
 		return steer;
 	}
 
+	static double calculateThrottleBreak(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+		if (pEgo->speed * 3.6 > 20) {
+			return -1;
+		}
+		else {
+			return 1;
+		}
+	}
 
-private:
 
+public:
+	static size_t point_index;
 };
+
+size_t control::point_index = 0;
 
 #endif // !_CONTROL_
 

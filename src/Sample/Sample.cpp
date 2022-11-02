@@ -78,26 +78,26 @@ void ModelOutput(UserData* userData) {
             Ego* pEgo = nullptr;
             if (pGlobal->ego != nullptr) {
                 pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
+                control::get_nearest_point_idx(targetPath);
                 double steer = control::calculateSteering(targetPath, pEgo);
                 cout << "steer: " << steer << endl;
-                if (pEgo->speed * 3.6 > 10) {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 1;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
-                }
-                else {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
+
+                double thr = control::calculateThrottleBreak(targetPath, pEgo);
+
+                pEgoCtrl->time = userData->time;
+                pEgoCtrl->valid = 1;
+                if (thr > 0) {
                     pEgoCtrl->throttle = 1;
                     pEgoCtrl->brake = 0;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
                 }
+                else {
+                    pEgoCtrl->throttle = 0;
+                    pEgoCtrl->brake = 1;
+                }
+                pEgoCtrl->steer = steer;
+                pEgoCtrl->mode = 1;
+                pEgoCtrl->gear = 1;
+                
             }
             if (pLidar != nullptr && pEgoCtrl != nullptr)
             {
