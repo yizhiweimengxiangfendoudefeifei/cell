@@ -25,14 +25,14 @@ void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
 void referenceLine::findIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
 	/*std::cout << "inner num: " << this->inner << std::endl;
 	std::cout << "outter num: " << this->outter << std::endl;*/
-	for (int i = 0; i < this->outter; ++i) {
+	for (int i = 0; i < out_xy.size(); ++i) {
 		double min_dis = std::numeric_limits<int>::max();
-		for (int j = 0; j < this->inner; ++j) {
+		for (int j = 0; j < in_xy.size(); ++j) {
 			double dis = pow(this->out_xy[i].first-this->in_xy[j].first,2)
 				+pow(this->out_xy[i].second - this->in_xy[j].second, 2);
 			if (dis < min_dis) {
 				min_dis = dis;
-				this->match_point_index_set.push_back(j);
+				this->match_point_index_set[i] = j;
 			}
 		}
 	}
@@ -87,6 +87,8 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 	// 5.output
 	for (std::vector<Point3d_s>::iterator it = vec_3d.begin(); it != vec_3d.end(); it++) {
 		output.emplace_back((*it).x, (*it).y);
+		/*std::cout << "output[0].x:" << output[0].first << std::endl;
+		std::cout << "output[end].x:" << output[output.size()-1].first << std::endl;*/
 	}
 		
 }

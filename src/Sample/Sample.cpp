@@ -3,8 +3,10 @@
 #include <string_view>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 #include "reference_line.h"
+#include "control.h"
 /*主函数入口，panosim每10ms调用一次这个程序
 */
 using std::string;
@@ -52,10 +54,13 @@ void ModelOutput(UserData* userData) {
                 referenceline.shape(pLidar);
                 referenceline.findIndex(pLidar);
                 referenceline.calcCenterPoint();// referenceline这个对象包含所有中心点的坐标
-                //// 插值函数中输入是eigen数据类型，我们的输入是vector<pair>,因此需要类型转换
+                // 插值函数中输入是eigen数据类型，我们的输入是vector<pair>,因此需要类型转换
                 //Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy());
-                //std::vector<std::pair<double, double>> output;
-                //referenceline.average_interpolation(input, output, 0.2, 0.6);
+                /*std::cout << "input size: " << input.size() << std::endl;
+                std::vector<std::pair<double, double>> output;
+                referenceline.average_interpolation(input, output, 0.2, 0.6);*/
+                //cout << "output.size: " << output.size() << endl;
+                //referenceline.set_center_point_xy_final(output);// 得到最终的参考线
                 //referenceline.get_center_point_xy_final() = output;// 得到最终的参考线
                 /*cout << "OBJ_Class: " << pLidar->items->OBJ_Class << endl;
                 cout << "OBJ_S_X: " << pLidar->items->OBJ_S_X << endl;
@@ -67,19 +72,45 @@ void ModelOutput(UserData* userData) {
             if (pGlobal->ego_control != nullptr) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
             }
-            // 
-            if (pLidar != nullptr && pEgoCtrl != nullptr)
-            {
-                if (pLidar->header.width > 0) {
-                    cout << "==============================" << endl;
+            // 自车状态类，在这里写控制
+            std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
+            //cout << "targetPath.size: " << targetPath.size() << endl;
+            Ego* pEgo = nullptr;
+            if (pGlobal->ego != nullptr) {
+                pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
+                double steer = control::calculateSteering(targetPath, pEgo);
+                cout << "steer: " << steer << endl;
+                if (pEgo->speed * 3.6 > 10) {
                     pEgoCtrl->time = userData->time;
                     pEgoCtrl->valid = 1;
                     pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 10000;
-                    pEgoCtrl->steer = 0;
-                    pEgoCtrl->mode = 0;
-                    pEgoCtrl->gear = 0;
+                    pEgoCtrl->brake = 1;
+                    pEgoCtrl->steer = steer;
+                    pEgoCtrl->mode = 1;
+                    pEgoCtrl->gear = 1;
                 }
+                else {
+                    pEgoCtrl->time = userData->time;
+                    pEgoCtrl->valid = 1;
+                    pEgoCtrl->throttle = 1;
+                    pEgoCtrl->brake = 0;
+                    pEgoCtrl->steer = steer;
+                    pEgoCtrl->mode = 1;
+                    pEgoCtrl->gear = 1;
+                }
+            }
+            if (pLidar != nullptr && pEgoCtrl != nullptr)
+            {
+                /*if (pLidar->header.width > 0) {
+                    cout << "==============================" << endl;
+                    pEgoCtrl->time = userData->time;
+                    pEgoCtrl->valid = 1;
+                    pEgoCtrl->throttle = 1;
+                    pEgoCtrl->brake = 0;
+                    pEgoCtrl->steer = 0;
+                    pEgoCtrl->mode = 1;
+                    pEgoCtrl->gear = 1;
+                }*/
             }
         }
     }
