@@ -63,21 +63,37 @@ public:
 		
 		auto max_v = sqrt( (2 * 9.8 / (this_kappa > future_kappa ? this_kappa : future_kappa)));
 
-		if (pEgo->speed > max_v) {
-			return -1;
-		}
-		else {
-			return 1;
-		}
+		return PID_Control(max_v, pEgo->speed);
 	}
 
+	static double PID_Control(double value_target, double value_now) {
+		double dt = 0.01;
+		double kp = 0.1;
+		double ki = 1;
+		double kd = 1;
+
+		double value_p = value_target - value_now;
+		value_i += (value_target - value_now) * dt;
+		//double value_d = (value_now - value_last) / dt;
+
+		double control_value = kp * value_p + ki * value_i;
+		if (control_value > 1) control_value = 1;
+		if (control_value < -1) control_value = -1;
+
+		return control_value;
+		
+	}
 
 public:
 	static size_t point_index;
+	static double value_i;
+	static double value_last;
+	
 };
 
 size_t control::point_index = 0;
-
+double control::value_i = 0;
+double control::value_last = 0;
 #endif // !_CONTROL_
 
 

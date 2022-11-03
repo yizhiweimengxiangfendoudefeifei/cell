@@ -88,12 +88,12 @@ void ModelOutput(UserData* userData) {
                 pEgoCtrl->time = userData->time;
                 pEgoCtrl->valid = 1;
                 if (thr > 0) {
-                    pEgoCtrl->throttle = 1;
+                    pEgoCtrl->throttle = thr;
                     pEgoCtrl->brake = 0;
                 }
                 else {
                     pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 1;
+                    pEgoCtrl->brake = -thr;
                 }
                 pEgoCtrl->steer = steer;
                 pEgoCtrl->mode = 1;
