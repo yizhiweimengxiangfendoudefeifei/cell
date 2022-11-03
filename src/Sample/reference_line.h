@@ -69,7 +69,9 @@ public:
 	void get_kappa(std::vector<std::pair<double, double>> center_point_xy_final);
 
 	double calculate_velocity(double k);
-
+	std::vector<RefPoint> getRefMsg() {
+		return this->RefMsg;
+	}
 private:
 	std::vector<std::pair<double, double>> center_point_xy; // �洢�ο��ߵ�x y
 	std::vector<std::pair<double, double>> center_point_xy_final; // �洢������ֵ�ο��ߵ�x y

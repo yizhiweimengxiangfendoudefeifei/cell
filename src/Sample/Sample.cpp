@@ -79,33 +79,34 @@ void ModelOutput(UserData* userData) {
             }
             // 自车状态类，在这里写控制
             
-            //cout << "targetPath.size: " << targetPath.size() << endl;
             if (pGlobal->ego == nullptr) {
                 cout << "this is null" << endl;
             }
             if (pGlobal->ego != nullptr) {
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
+                referenceline.get_kappa(targetPath);
+                auto targetPathWithKappa = referenceline.getRefMsg();
                 std::cout << "targetPath.size: " << targetPath.size() << std::endl;
+                std::cout << "targetPathWithKappa.size: " << targetPathWithKappa.size() << std::endl;
+
                 double steer = control::calculateSteering(targetPath, pEgo);
                 //cout << "steer: " << steer << endl;
-                if (pEgo->speed * 3.6 > 10) {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 1;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
+                double thr = control::calculateThrottleBreak(targetPathWithKappa, pEgo);
+                cout << "thr: " << thr << endl;
+
+                pEgoCtrl->time = userData->time;
+                pEgoCtrl->valid = 1;
+                if (thr > 0) {
+                    pEgoCtrl->throttle = thr;
+                    pEgoCtrl->brake = 0;
                 }
                 else {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 1;
-                    pEgoCtrl->brake = 0;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
+                    pEgoCtrl->throttle = 0;
+                    pEgoCtrl->brake = -thr;
                 }
+                pEgoCtrl->steer = steer;
+                pEgoCtrl->mode = 1;
+                pEgoCtrl->gear = 1;
             }
             //if (pLidar != nullptr && pEgoCtrl != nullptr)
             //{
