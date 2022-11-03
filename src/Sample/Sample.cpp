@@ -25,6 +25,7 @@ using PanoSimBasicsBus::Ego;
 struct GlobalData {
     BusAccessor* lidar;
     BusAccessor* ego_control, *ego;
+    bool turn=false;
 };
 
 void PrintParameters(UserData* userData);
@@ -52,9 +53,12 @@ void ModelOutput(UserData* userData) {
             if (pGlobal->lidar != nullptr && pGlobal->ego != nullptr) {
                 pLidar = static_cast<Lidar_ObjList_G*>(pGlobal->lidar->GetHeader());
                 pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
-                referenceline.shape(pLidar, pEgo);
-                referenceline.findIndex();
+                referenceline.shape(pLidar);
                 referenceline.calcCenterPoint();// referenceline这个对象包含所有中心点的坐标
+                referenceline.sortIndex(pLidar, pEgo);
+                referenceline.centerPoint();
+                
+                
                 
                 // 对道路参考线进行排序
                 //size_t index = mactPoint(targetPath);
@@ -67,9 +71,6 @@ void ModelOutput(UserData* userData) {
                 //cout << "output.size: " << output.size() << endl;
                 //referenceline.set_center_point_xy_final(output);// 得到最终的参考线
                 //referenceline.get_center_point_xy_final() = output;// 得到最终的参考线
-                /*cout << "OBJ_Class: " << pLidar->items->OBJ_Class << endl;
-                cout << "OBJ_S_X: " << pLidar->items->OBJ_S_X << endl;
-                cout << "width: " << pLidar->header.width << endl;*/
 
             }
             // 自车控制
@@ -78,16 +79,21 @@ void ModelOutput(UserData* userData) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
             }
             // 自车状态类，在这里写控制
-            
-            //cout << "targetPath.size: " << targetPath.size() << endl;
-            if (pGlobal->ego == nullptr) {
-                cout << "this is null" << endl;
-            }
             if (pGlobal->ego != nullptr) {
-                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
-                std::cout << "targetPath.size: " << targetPath.size() << std::endl;
+                //if (!(pGlobal->turn)) {
+                //    std::cout << "11111111111111" << std::endl;
+                //    std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
+                //    for (int i = 0; i < targetPath.size(); ++i) {
+                //        pGlobal->center_point_xy_global.emplace_back(targetPath[i].first, targetPath[i].second);
+                //        std::cout << pGlobal->center_point_xy_global[i].first << "   " << pGlobal->center_point_xy_global[i].second << std::endl;
+                //    }
+                //    pGlobal->turn = true;
+                //}
+                //std::cout << "pGlobal->center_point_xy_global.size: " << pGlobal->center_point_xy_global.size() << std::endl;
+                // 判断是否转向
+                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// 参考路径
                 double steer = control::calculateSteering(targetPath, pEgo);
-                //cout << "steer: " << steer << endl;
+                cout << "steer: " << steer << endl;
                 if (pEgo->speed * 3.6 > 10) {
                     pEgoCtrl->time = userData->time;
                     pEgoCtrl->valid = 1;

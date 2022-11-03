@@ -5,75 +5,97 @@
 
 /*根据锥桶颜色对内圈和外圈的锥桶分别存储
 */
-void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) {
-	// 存储正前方方圆10m的锥桶位置
-	std::cout << "************************" << std::endl;
+void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
+	// 存储全局坐标系的内外圈锥桶坐标
+	//std::cout << "************************" << std::endl;
 	for (int i = 0; i < pLidar->header.width; ++i) {
-		double heading = std::cos(pEgo->yaw) * pLidar->items[i].OBJ_S_X + (-std::sin(pEgo->yaw)) * pLidar->items[i].OBJ_S_Y;
-		/*if (heading < -0.85) {
+		//
+		/*if (heading < 0) {
 			continue;
 		}*/
-		if (pLidar->items[i].OBJ_S_Dist < 30) {
-			if (pLidar->items[i].shape == 2) {
-				// 存储外圈的坐标
-				this->out_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
-				std::cout << "outter: " << this->out_xy[this->outter].first << "  " << this->out_xy[this->outter].second << std::endl;
-				this->outter++;
+		if (pLidar->items[i].shape == 2) {
+			// 存储外圈的坐标
+			this->out_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
+			//std::cout << "outter: " << this->out_xy[this->outter].first << "  " << this->out_xy[this->outter].second << std::endl;
+			this->outter++;
 				
-			}
-			else if(pLidar->items[i].shape == 11){
-				// 存储内圈的坐标
-				this->in_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
-				std::cout << "innner: " << this->in_xy[this->inner].first << "  " << this->in_xy[this->inner].second << std::endl;
-				this->inner++;
-			}
 		}
+		else if(pLidar->items[i].shape == 11){
+			// 存储内圈的坐标
+			this->in_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
+			//std::cout << "innner: " << this->in_xy[this->inner].first << "  " << this->in_xy[this->inner].second << std::endl;
+			this->inner++;
+		}
+
 		
 	}
 }
 
-/*根据外圈的锥桶寻找距离最近的内圈锥桶的index
-*/
-void referenceLine::findIndex() {
-	/*std::cout << "inner num: " << this->inner << std::endl;
-	std::cout << "outter num: " << this->outter << std::endl;*/
-	// 将外圈锥桶重新排序：先找到最近的锥桶，然后一次找到距离现在锥桶最近的锥桶的索引存到match_point_index_set_outter中，内圈同理
-	double min_dis = (std::numeric_limits<int>::max)();
-	int index_out = 0;
-	for (size_t i = 0; i < this->out_xy.size(); ++i) {
-		double dis = pow(this->out_xy[i].first, 2) + pow(this->out_xy[i].second, 2);
-		if (dis < min_dis) {
-			min_dis = dis;
-			index_out = i;
+void referenceLine::calcCenterPoint(){
+	// 找到匹配点索引
+	for (int i = 0; i < this->out_xy.size(); ++i) {
+		double min_dis = (std::numeric_limits<int>::max)();
+		int k = 0;
+		for (int j = 0; j < this->in_xy.size(); ++j) {
+			double dis = pow(this->out_xy[i].first - this->in_xy[j].first, 2)
+				+ pow(this->out_xy[i].second - this->in_xy[j].second, 2);
+			if (dis < min_dis) {
+				min_dis = dis;
+				k = j;
+			}
 		}
+		this->match_point_index_set.push_back(k);
 	}
 
-	std::vector<int> out_selected; // 这里只填0,1表示bool类型
-	for (int i = 0; i < this->out_xy.size(); ++i) {
-		out_selected.push_back(0);
+	int num_selected = this->in_xy.size() < this->out_xy.size() ? this->in_xy.size() : this->out_xy.size();
+	for (int i = 0; i < num_selected; ++i) {
+		center_point_xy.emplace_back((this->out_xy[i].first + this->in_xy[this->match_point_index_set[i]].first) / 2,
+									 (this->out_xy[i].second + this->in_xy[this->match_point_index_set[i]].second) / 2);
+		//std::cout << center_point_xy[i].first << "  " << center_point_xy[i].second << std::endl;
 	}
-	out_selected[index_out] = 1;
-	// 根据找到的最近的锥桶与其它锥桶的距离，从小到大进行排序
-	this->match_point_index_set_outter.push_back(index_out);
+}
+/*根据外圈的锥桶寻找距离最近的内圈锥桶的index
+*/
+void referenceLine::sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) {
+	/*std::cout << "inner num: " << this->inner << std::endl;
+	std::cout << "outter num: " << this->outter << std::endl;*/
+	// 直接对中心线上锥桶的索引进行排序
+	double min_dis = (std::numeric_limits<int>::max)();
+	int index_cen = 0;
+	for (size_t i = 0; i < this->center_point_xy.size(); ++i) {
+		double dis = pow(this->center_point_xy[i].first, 2) + pow(this->center_point_xy[i].second, 2);
+		std::cout << "pEgo->yaw: " << pEgo->yaw << std::endl;
+		double heading = std::cos(pEgo->yaw) * center_point_xy[i].first + (std::sin(pEgo->yaw)) * center_point_xy[i].second;
+		std::cout << "heading: " << heading << std::endl;
+		if (dis < min_dis && heading >= 0) {
+			// 保证中心点在车子前边
+			min_dis = dis;
+			index_cen = i;
+		}
+	}
+	std::vector<int> cen_selected(this->center_point_xy.size()); // 全部初始化为0
+	cen_selected[index_cen] = 1;
+	this->match_point_index_set_cen.push_back(index_cen);
+	
 	int num = 0, j = 0;
-	while (this->match_point_index_set_outter.size() < this->out_xy.size())
+	while (this->match_point_index_set_cen.size() < this->center_point_xy.size())
 	{
 		min_dis = (std::numeric_limits<int>::max)();
-		for (int i = 0; i < this->out_xy.size(); ++i) {
-			double dis = pow(this->out_xy[i].first - this->out_xy[this->match_point_index_set_outter[num]].first, 2) +
-				pow(this->out_xy[i].second - this->out_xy[this->match_point_index_set_outter[num]].second, 2);
-			if (dis < min_dis && out_selected[i] != 1) {
+		for (int i = 0; i < this->center_point_xy.size(); ++i) {
+			double dis = pow(this->center_point_xy[i].first - this->center_point_xy[this->match_point_index_set_cen[num]].first, 2) +
+				pow(this->center_point_xy[i].second - this->center_point_xy[this->match_point_index_set_cen[num]].second, 2);
+			if (dis < min_dis && cen_selected[i] != 1) {
 				j = i;
 				min_dis = dis;
 			}
 		}
-		this->match_point_index_set_outter.push_back(j);
-		out_selected[j] = 1;
+		this->match_point_index_set_cen.push_back(j);
+		cen_selected[j] = 1;
 		num++;
 	}
 
 	// 将内圈锥桶重新排序
-	min_dis = (std::numeric_limits<int>::max)();
+	/*min_dis = (std::numeric_limits<int>::max)();
 	int index_in = 0;
 	for (size_t i = 0; i < this->in_xy.size(); ++i) {
 		double dis = pow(this->in_xy[i].first, 2) + pow(this->in_xy[i].second, 2);
@@ -103,9 +125,19 @@ void referenceLine::findIndex() {
 		this->match_point_index_set_inner.push_back(j);
 		in_selected[j] = 1;
 		num++;
-	}
+	}*/
 }
 
+/*将
+*/
+void referenceLine::centerPoint() {
+	std::cout << "====================" << std::endl;
+	for (int i = 0; i < this->center_point_xy.size(); ++i) {
+		center_point_xy_sort.emplace_back(this->center_point_xy[this->match_point_index_set_cen[i]].first,
+			this->center_point_xy[this->match_point_index_set_cen[i]].second);
+		std::cout << center_point_xy_sort[i].first << "  " << center_point_xy_sort[i].second << std::endl;
+	}
+}
 /*将计算得到的中心点插值后输出
 */
 void referenceLine::average_interpolation(Eigen::MatrixXd &input,

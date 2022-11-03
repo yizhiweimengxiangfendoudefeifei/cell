@@ -36,28 +36,21 @@ public:
 	~referenceLine() = default;
 	/*����׶Ͱ��ɫ����Ȧ����Ȧ��׶Ͱ�ֱ�洢����
 	*/
-	void shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo);
+	void shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar);
+	// �洢���ĵ������
+	void calcCenterPoint();
 	/*������Ȧ��׶ͰѰ�Ҿ����������Ȧ׶Ͱ��index
 	*/
-	void findIndex();
-	// �洢���ĵ������
-	void calcCenterPoint() {
-		std::cout << "====================" << std::endl;
-		int num_selected = this->in_xy.size() < this->out_xy.size() ? this->in_xy.size() : this->out_xy.size();
-		for (int i = 0; i < num_selected; ++i) {
-			center_point_xy.emplace_back((this->out_xy[this->match_point_index_set_outter[i]].first + 
-										  this->in_xy[this->match_point_index_set_inner[i]].first) / 2, 
-										 (this->out_xy[this->match_point_index_set_outter[i]].second +
-										  this->in_xy[this->match_point_index_set_inner[i]].second) / 2);
-			std::cout << center_point_xy[i].first << "  " << center_point_xy[i].second << std::endl;
-		}
-		//std::cout << center_point_xy[127].first << std::endl;
-	}
+	void sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo);
+	/*排序后的数组存在一个新的容器中
+	*/
+	void centerPoint();
+	
 	void average_interpolation(Eigen::MatrixXd& input, std::vector<std::pair<double, double>>& output, double interval_dis,
 		double distance);
 
-	std::vector<std::pair<double, double>> get_center_point_xy() {
-		return center_point_xy;
+	std::vector<std::pair<double, double>> get_center_point_xy_sort() {
+		return center_point_xy_sort;
 	}
 
 	std::vector<std::pair<double, double>> get_center_point_xy_final() {
@@ -72,13 +65,14 @@ public:
 
 private:
 	std::vector<std::pair<double, double>> center_point_xy; // �洢�ο��ߵ�x y
+	std::vector<std::pair<double, double>> center_point_xy_sort;
 	std::vector<std::pair<double, double>> center_point_xy_final; // �洢������ֵ�ο��ߵ�x y
 	std::vector<std::pair<double, double>> in_xy;// ����Ȧ����洢����
 	std::vector<std::pair<double, double>> out_xy;// ����Ȧ����洢����
 	std::vector<int> match_point_index_set;// ��Ȧ��Ӧ�����������Ȧindex
 	std::vector<RefPoint> RefMsg;//�洢���յĲο�����Ϣ��������x��y����͸õ������
 	int RefPointCounter;//���յĲο��ߵ㼯�е������
-	std::vector<int> match_point_index_set_outter;// ����Ȧ׶Ͱ��Ӧ������ֵ
+	std::vector<int> match_point_index_set_cen;// ����Ȧ׶Ͱ��Ӧ������ֵ
 	std::vector<int> match_point_index_set_inner;
 	int inner = 0;// ����Ȧ׶Ͱ��
 	int outter = 0;

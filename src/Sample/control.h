@@ -37,9 +37,15 @@ public:
 		double psi = (double)pEgo->yaw;// º½Ïò½Ç
 		double deltaAlfa = atan2(targetPath[forwardIndex].second,
 			targetPath[forwardIndex].first) - psi;// º½ÏòÆ«²î
-		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) + 
+		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) +
 			pow(targetPath[forwardIndex].first, 2)); // ºáÏòÆ«²î
 		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 5 / (1 * M_PI);
+		if (steer > 30) {
+			steer = 30;
+		}
+		else if (steer < -30) {
+			steer = -30;
+		}
 		return steer;
 	}
 
