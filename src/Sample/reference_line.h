@@ -5,7 +5,8 @@
 #include <vector>
 #include <Eigen\Dense>
 #include <SensorBusDef.h>
-/*¹¦ÄÜ£º¶©ÔÄ×¶Í°Î»ÖÃ£¬Éú³É³µÁ¾ÐÐÊ»²Î¿¼Ïß
+#include <BasicsBusDef.h>
+/*ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½×¶Í°Î»ï¿½Ã£ï¿½ï¿½ï¿½ï¿½É³ï¿½ï¿½ï¿½ï¿½ï¿½Ê»ï¿½Î¿ï¿½ï¿½ï¿½
 */
 struct Point3d_s
 {
@@ -33,18 +34,22 @@ class referenceLine
 public:
 	referenceLine() = default;
 	~referenceLine() = default;
-	/*¸ù¾Ý×¶Í°ÑÕÉ«¶ÔÄÚÈ¦ºÍÍâÈ¦µÄ×¶Í°·Ö±ð´æ´¢×ø±ê
+	/*ï¿½ï¿½ï¿½ï¿½×¶Í°ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½×¶Í°ï¿½Ö±ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½
 	*/
-	void shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar);
-	/*¸ù¾ÝÍâÈ¦µÄ×¶Í°Ñ°ÕÒ¾àÀë×î½üµÄÄÚÈ¦×¶Í°µÄindex
+	void shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo);
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½×¶Í°Ñ°ï¿½Ò¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦×¶Í°ï¿½ï¿½index
 	*/
-	void findIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar);
-	// ´æ´¢ÖÐÐÄµãµÄË÷Òý
+	void findIndex();
+	// ï¿½æ´¢ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void calcCenterPoint() {
-		//std::cout << "inner num: " << this->inner << std::endl;
-		for (int i = 0; i < this->inner; ++i) {
-			center_point_xy.emplace_back((out_xy[i].first + in_xy[match_point_index_set[i]].first) / 2,
-				(out_xy[i].second + in_xy[match_point_index_set[i]].second) / 2);
+		std::cout << "====================" << std::endl;
+		int num_selected = this->in_xy.size() < this->out_xy.size() ? this->in_xy.size() : this->out_xy.size();
+		for (int i = 0; i < num_selected; ++i) {
+			center_point_xy.emplace_back((this->out_xy[this->match_point_index_set_outter[i]].first + 
+										  this->in_xy[this->match_point_index_set_inner[i]].first) / 2, 
+										 (this->out_xy[this->match_point_index_set_outter[i]].second +
+										  this->in_xy[this->match_point_index_set_inner[i]].second) / 2);
+			std::cout << center_point_xy[i].first << "  " << center_point_xy[i].second << std::endl;
 		}
 		//std::cout << center_point_xy[127].first << std::endl;
 	}
@@ -59,22 +64,27 @@ public:
 		return center_point_xy_final;
 	}
 
-	double calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3);//ÀûÓÃÈýµã·¨¼ÆËã¸ÃµãµÄÇúÂÊ
+	double calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	void get_kappa(std::vector<std::pair<double, double>> center_point_xy_final);
 
 	double calculate_velocity(double k);
 
 private:
-	std::vector<std::pair<double, double>> center_point_xy; // ´æ´¢²Î¿¼ÏßµÄx y
-	std::vector<std::pair<double, double>> center_point_xy_final; // ´æ´¢¾­¹ý²åÖµ²Î¿¼ÏßµÄx y
-	std::vector<std::pair<double, double>> in_xy;// ½«ÄÚÈ¦×ø±ê´æ´¢ÏÂÀ´
-	std::vector<std::pair<double, double>> out_xy;// ½«ÍâÈ¦×ø±ê´æ´¢ÏÂÀ´
-	std::vector<int> match_point_index_set;// ÍâÈ¦¶ÔÓ¦¾àÀë×î½üµÄÄÚÈ¦index
-	std::vector<RefPoint> RefMsg;//´æ´¢×îÖÕµÄ²Î¿¼ÏßÐÅÏ¢£¬°üÀ¨ÏÂx¡¢y×ø±êºÍ¸ÃµãµÄÇúÂÊ
-	int inner = 0;// ÄÚÈ¦×¶Í°Êý
-	int outter = 0;// ÍâÈ¦×¶Í°Êý
-	int RefPointCounter;//×îÖÕµÄ²Î¿¼Ïßµã¼¯ÖÐµãµÄÊýÁ¿
+	std::vector<std::pair<double, double>> center_point_xy; // ï¿½æ´¢ï¿½Î¿ï¿½ï¿½ßµï¿½x y
+	std::vector<std::pair<double, double>> center_point_xy_final; // ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½Î¿ï¿½ï¿½ßµï¿½x y
+	std::vector<std::pair<double, double>> in_xy;// ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½
+	std::vector<std::pair<double, double>> out_xy;// ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½
+	std::vector<int> match_point_index_set;// ï¿½ï¿½È¦ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦index
+	std::vector<RefPoint> RefMsg;//ï¿½æ´¢ï¿½ï¿½ï¿½ÕµÄ²Î¿ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½yï¿½ï¿½ï¿½ï¿½Í¸Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int RefPointCounter;//ï¿½ï¿½ï¿½ÕµÄ²Î¿ï¿½ï¿½ßµã¼¯ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	std::vector<int> match_point_index_set_outter;// ï¿½ï¿½ï¿½ï¿½È¦×¶Í°ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+	std::vector<int> match_point_index_set_inner;
+	std::vector<std::pair<double, double>> in_xy;// ï¿½ï¿½È¦ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦index
+	std::vector<std::pair<double, double>> out_xy;
+	int inner = 0;// ï¿½ï¿½ï¿½ï¿½È¦×¶Í°ï¿½ï¿½
+	int outter = 0;
+
 };
 
 

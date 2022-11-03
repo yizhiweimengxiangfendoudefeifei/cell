@@ -3,38 +3,106 @@
 #include <iostream>
 #include "reference_line.h"
 
-/*根据锥桶颜色对内圈和外圈的锥桶分别存储坐标
+/*根据锥桶颜色对内圈和外圈的锥桶分别存储
 */
-void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
+void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) {
+	// 存储正前方方圆10m的锥桶位置
+	std::cout << "************************" << std::endl;
 	for (int i = 0; i < pLidar->header.width; ++i) {
-		if (pLidar->items[i].shape == 2) {
-			// 存储外圈的坐标
-			this->out_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
-			this->outter++;
+		double heading = std::cos(pEgo->yaw) * pLidar->items[i].OBJ_S_X + (-std::sin(pEgo->yaw)) * pLidar->items[i].OBJ_S_Y;
+		if (heading < -0.85) {
+			continue;
 		}
-		else {
-			// 存储内圈的坐标
-			this->in_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
-			this->inner++;
+		if (pLidar->items[i].OBJ_S_Dist < 30) {
+			if (pLidar->items[i].shape == 2) {
+				// 存储外圈的坐标
+				this->out_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
+				std::cout << "outter: " << this->out_xy[this->outter].first << "  " << this->out_xy[this->outter].second << std::endl;
+				this->outter++;
+				
+			}
+			else if(pLidar->items[i].shape == 11){
+				// 存储内圈的坐标
+				this->in_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
+				std::cout << "innner: " << this->in_xy[this->inner].first << "  " << this->in_xy[this->inner].second << std::endl;
+				this->inner++;
+			}
 		}
+		
 	}
 }
 
 /*根据外圈的锥桶寻找距离最近的内圈锥桶的index
 */
-void referenceLine::findIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
+void referenceLine::findIndex() {
 	/*std::cout << "inner num: " << this->inner << std::endl;
 	std::cout << "outter num: " << this->outter << std::endl;*/
-	for (int i = 0; i < out_xy.size(); ++i) {
-		double min_dis = std::numeric_limits<int>::max();
-		for (int j = 0; j < in_xy.size(); ++j) {
-			double dis = pow(this->out_xy[i].first-this->in_xy[j].first,2)
-				+pow(this->out_xy[i].second - this->in_xy[j].second, 2);
-			if (dis < min_dis) {
+	// 将外圈锥桶重新排序：先找到最近的锥桶，然后一次找到距离现在锥桶最近的锥桶的索引存到match_point_index_set_outter中，内圈同理
+	double min_dis = (std::numeric_limits<int>::max)();
+	int index_out = 0;
+	for (size_t i = 0; i < this->out_xy.size(); ++i) {
+		double dis = pow(this->out_xy[i].first, 2) + pow(this->out_xy[i].second, 2);
+		if (dis < min_dis) {
+			min_dis = dis;
+			index_out = i;
+		}
+	}
+
+	std::vector<int> out_selected; // 这里只填0,1表示bool类型
+	for (int i = 0; i < this->out_xy.size(); ++i) {
+		out_selected.push_back(0);
+	}
+	out_selected[index_out] = 1;
+	// 根据找到的最近的锥桶与其它锥桶的距离，从小到大进行排序
+	this->match_point_index_set_outter.push_back(index_out);
+	int num = 0, j = 0;
+	while (this->match_point_index_set_outter.size() < this->out_xy.size())
+	{
+		min_dis = (std::numeric_limits<int>::max)();
+		for (int i = 0; i < this->out_xy.size(); ++i) {
+			double dis = pow(this->out_xy[i].first - this->out_xy[this->match_point_index_set_outter[num]].first, 2) +
+				pow(this->out_xy[i].second - this->out_xy[this->match_point_index_set_outter[num]].second, 2);
+			if (dis < min_dis && out_selected[i] != 1) {
+				j = i;
 				min_dis = dis;
-				this->match_point_index_set[i] = j;
 			}
 		}
+		this->match_point_index_set_outter.push_back(j);
+		out_selected[j] = 1;
+		num++;
+	}
+
+	// 将内圈锥桶重新排序
+	min_dis = (std::numeric_limits<int>::max)();
+	int index_in = 0;
+	for (size_t i = 0; i < this->in_xy.size(); ++i) {
+		double dis = pow(this->in_xy[i].first, 2) + pow(this->in_xy[i].second, 2);
+		if (dis < min_dis) {
+			min_dis = dis;
+			index_in = i;
+		}
+	}
+	std::vector<int> in_selected;
+	for (int i = 0; i < this->in_xy.size(); ++i) {
+		in_selected.push_back(0);
+	}
+	in_selected[index_in] = 1;
+	this->match_point_index_set_inner.push_back(index_in);
+	num = 0, j = 0;
+	while (this->match_point_index_set_inner.size() < this->in_xy.size())
+	{
+		min_dis = (std::numeric_limits<int>::max)();
+		for (int i = 0; i < this->in_xy.size(); ++i) {
+			double dis = pow(this->in_xy[i].first - this->in_xy[this->match_point_index_set_inner[num]].first, 2) +
+				pow(this->in_xy[i].second - this->in_xy[this->match_point_index_set_inner[num]].second, 2);
+			if (dis < min_dis && in_selected[i] != 1) {
+				j = i;
+				min_dis = dis;
+			}
+		}
+		this->match_point_index_set_inner.push_back(j);
+		in_selected[j] = 1;
+		num++;
 	}
 }
 

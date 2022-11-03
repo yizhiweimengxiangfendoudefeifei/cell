@@ -18,10 +18,10 @@ public:
 			pts.push_back(pow((double)targetPath[i].first, 2) + pow((double)targetPath[i].second, 2));
 		}
 		size_t index = std::min_element(pts.begin(), pts.end()) - pts.begin();// 距离主车距离最近的点的索引
-		std::cout << "index: " << index << std::endl;
+		//std::cout << "index: " << index << std::endl;
 		size_t forwardIndex = 0;
-		double minProgDist = 0.5f;
-		double progTime = 0.1f;
+		double minProgDist = 3;
+		double progTime = 0.8;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;// 预瞄距离
 
@@ -36,11 +36,10 @@ public:
 		}
 		double psi = (double)pEgo->yaw;// 航向角
 		double deltaAlfa = atan2(targetPath[forwardIndex].second,
-			targetPath[forwardIndex].first);// 航向偏差
+			targetPath[forwardIndex].first) - psi;// 航向偏差
 		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) + 
 			pow(targetPath[forwardIndex].first, 2)); // 横向偏差
-		double steer = -atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180. / (1. * M_PI);
-
+		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 5 / (1 * M_PI);
 		return steer;
 	}
 

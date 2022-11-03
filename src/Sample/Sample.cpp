@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "reference_line.h"
 #include "control.h"
 /*主函数入口，panosim每10ms调用一次这个程序
 */
@@ -49,11 +48,17 @@ void ModelOutput(UserData* userData) {
             referenceLine referenceline;// 生成一个参考线对象
             // 传感器
             Lidar_ObjList_G* pLidar = nullptr;
-            if (pGlobal->lidar != nullptr) {
+            Ego* pEgo = nullptr;
+            if (pGlobal->lidar != nullptr && pGlobal->ego != nullptr) {
                 pLidar = static_cast<Lidar_ObjList_G*>(pGlobal->lidar->GetHeader());
-                referenceline.shape(pLidar);
-                referenceline.findIndex(pLidar);
+                pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
+                referenceline.shape(pLidar, pEgo);
+                referenceline.findIndex();
                 referenceline.calcCenterPoint();// referenceline这个对象包含所有中心点的坐标
+                
+                // 对道路参考线进行排序
+                //size_t index = mactPoint(targetPath);
+                
                 // 插值函数中输入是eigen数据类型，我们的输入是vector<pair>,因此需要类型转换
                 //Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy());
                 /*std::cout << "input size: " << input.size() << std::endl;
@@ -73,13 +78,15 @@ void ModelOutput(UserData* userData) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
             }
             // 自车状态类，在这里写控制
-            std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
+            
             //cout << "targetPath.size: " << targetPath.size() << endl;
-            Ego* pEgo = nullptr;
+            if (pGlobal->ego == nullptr) {
+                cout << "this is null" << endl;
+            }
             if (pGlobal->ego != nullptr) {
-                pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
+                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
                 double steer = control::calculateSteering(targetPath, pEgo);
-                cout << "steer: " << steer << endl;
+                //cout << "steer: " << steer << endl;
                 if (pEgo->speed * 3.6 > 10) {
                     pEgoCtrl->time = userData->time;
                     pEgoCtrl->valid = 1;
@@ -99,19 +106,19 @@ void ModelOutput(UserData* userData) {
                     pEgoCtrl->gear = 1;
                 }
             }
-            if (pLidar != nullptr && pEgoCtrl != nullptr)
-            {
-                /*if (pLidar->header.width > 0) {
-                    cout << "==============================" << endl;
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 1;
-                    pEgoCtrl->brake = 0;
-                    pEgoCtrl->steer = 0;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
-                }*/
-            }
+            //if (pLidar != nullptr && pEgoCtrl != nullptr)
+            //{
+            //    /*if (pLidar->header.width > 0) {
+            //        cout << "==============================" << endl;
+            //        pEgoCtrl->time = userData->time;
+            //        pEgoCtrl->valid = 1;
+            //        pEgoCtrl->throttle = 1;
+            //        pEgoCtrl->brake = 0;
+            //        pEgoCtrl->steer = 0;
+            //        pEgoCtrl->mode = 1;
+            //        pEgoCtrl->gear = 1;
+            //    }*/
+            //}
         }
     }
 }
@@ -181,3 +188,14 @@ Eigen::MatrixXd vector_eigen(const std::vector<std::pair<double, double>> &input
     }
     return out;
 }
+
+// 找匹配点的全局函数
+
+//size_t mactPoint(std::vector<std::pair<double, double>> &path) {
+//    std::vector<double> pts;
+//    for (size_t i = 0; i < path.size(); ++i) {
+//        pts.push_back(pow((double)path[i].first, 2) + pow((double)path[i].second, 2));
+//    }
+//    size_t index = std::min_element(pts.begin(), pts.end()) - pts.begin();
+//    return index;
+//}
