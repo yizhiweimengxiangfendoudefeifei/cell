@@ -48,7 +48,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\eigen;../../include/panoSimApi</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include/eigen;../../include/panoSimApi</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>

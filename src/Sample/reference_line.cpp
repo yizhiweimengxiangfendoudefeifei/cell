@@ -3,10 +3,10 @@
 #include <iostream>
 #include "reference_line.h"
 
-/*¸ù¾Ý×¶Í°ÑÕÉ«¶ÔÄÚÈ¦ºÍÍâÈ¦µÄ×¶Í°·Ö±ð´æ´¢
+/*ï¿½ï¿½ï¿½ï¿½×¶Í°ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½×¶Í°ï¿½Ö±ï¿½æ´¢
 */
 void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
-	// ´æ´¢È«¾Ö×ø±êÏµµÄÄÚÍâÈ¦×¶Í°×ø±ê
+	// ï¿½æ´¢È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦×¶Í°ï¿½ï¿½ï¿½ï¿½
 	//std::cout << "************************" << std::endl;
 	for (int i = 0; i < pLidar->header.width; ++i) {
 		//
@@ -14,14 +14,14 @@ void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
 			continue;
 		}*/
 		if (pLidar->items[i].shape == 2) {
-			// ´æ´¢ÍâÈ¦µÄ×ø±ê
+			// ï¿½æ´¢ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			this->out_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
 			//std::cout << "outter: " << this->out_xy[this->outter].first << "  " << this->out_xy[this->outter].second << std::endl;
 			this->outter++;
 				
 		}
 		else if(pLidar->items[i].shape == 11){
-			// ´æ´¢ÄÚÈ¦µÄ×ø±ê
+			// ï¿½æ´¢ï¿½ï¿½È¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			this->in_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
 			//std::cout << "innner: " << this->in_xy[this->inner].first << "  " << this->in_xy[this->inner].second << std::endl;
 			this->inner++;
@@ -32,7 +32,7 @@ void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
 }
 
 void referenceLine::calcCenterPoint(){
-	// ÕÒµ½Æ¥ÅäµãË÷Òý
+	// ï¿½Òµï¿½Æ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	for (int i = 0; i < this->out_xy.size(); ++i) {
 		double min_dis = (std::numeric_limits<int>::max)();
 		int k = 0;
@@ -54,12 +54,12 @@ void referenceLine::calcCenterPoint(){
 		//std::cout << center_point_xy[i].first << "  " << center_point_xy[i].second << std::endl;
 	}
 }
-/*¸ù¾ÝÍâÈ¦µÄ×¶Í°Ñ°ÕÒ¾àÀë×î½üµÄÄÚÈ¦×¶Í°µÄindex
+/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦ï¿½ï¿½×¶Í°Ñ°ï¿½Ò¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¦×¶Í°ï¿½ï¿½index
 */
 void referenceLine::sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) {
 	/*std::cout << "inner num: " << this->inner << std::endl;
 	std::cout << "outter num: " << this->outter << std::endl;*/
-	// Ö±½Ó¶ÔÖÐÐÄÏßÉÏ×¶Í°µÄË÷Òý½øÐÐÅÅÐò
+	// Ö±ï¿½Ó¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¶Í°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	double min_dis = (std::numeric_limits<int>::max)();
 	int index_cen = 0;
 	for (size_t i = 0; i < this->center_point_xy.size(); ++i) {
@@ -68,12 +68,12 @@ void referenceLine::sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSim
 		double heading = std::cos(pEgo->yaw) * center_point_xy[i].first + (std::sin(pEgo->yaw)) * center_point_xy[i].second;
 		std::cout << "heading: " << heading << std::endl;
 		if (dis < min_dis && heading >= 0) {
-			// ±£Ö¤ÖÐÐÄµãÔÚ³µ×ÓÇ°±ß
+			// ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½Äµï¿½ï¿½Ú³ï¿½ï¿½ï¿½Ç°ï¿½ï¿½
 			min_dis = dis;
 			index_cen = i;
 		}
 	}
-	std::vector<int> cen_selected(this->center_point_xy.size()); // È«²¿³õÊ¼»¯Îª0
+	std::vector<int> cen_selected(this->center_point_xy.size()); // È«ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½Îª0
 	cen_selected[index_cen] = 1;
 	this->match_point_index_set_cen.push_back(index_cen);
 	
@@ -94,7 +94,7 @@ void referenceLine::sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSim
 		num++;
 	}
 
-	// ½«ÄÚÈ¦×¶Í°ÖØÐÂÅÅÐò
+	// ï¿½ï¿½ï¿½ï¿½È¦×¶Í°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	/*min_dis = (std::numeric_limits<int>::max)();
 	int index_in = 0;
 	for (size_t i = 0; i < this->in_xy.size(); ++i) {
@@ -128,7 +128,7 @@ void referenceLine::sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSim
 	}*/
 }
 
-/*½«
+/*ï¿½ï¿½
 */
 void referenceLine::centerPoint() {
 	std::cout << "====================" << std::endl;
@@ -138,33 +138,33 @@ void referenceLine::centerPoint() {
 		std::cout << center_point_xy_sort[i].first << "  " << center_point_xy_sort[i].second << std::endl;
 	}
 }
-/*½«¼ÆËãµÃµ½µÄÖÐÐÄµã²åÖµºóÊä³ö
+/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½
 */
 void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 	std::vector<std::pair<double, double>> &output, 
 	double interval_dis,
 	double distance) {
-	// 1.¶¨ÒåÒ»¸öÈÝÆ÷£¬ÀàÐÍÎªPoint3d_s,¼´£¨x,y,z£©
+	// 1.ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªPoint3d_s,ï¿½ï¿½ï¿½ï¿½x,y,zï¿½ï¿½
 	std::vector<Point3d_s> vec_3d;
 	std::vector<Point3d_s> n_vec;
 	Point3d_s p;
-	// 2.±éÀú
+	// 2.ï¿½ï¿½ï¿½ï¿½
 	for (int i = 0; i < input.size() - 1; ++i) {
 		double dis = (input.row(i + 1) - input.row(i)).norm();
-		// ¾àÀë¹ý³¤½øÐÐ²åµã
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½
 		if (dis >= distance) {
-			//¼ÆËã(x,y)Á½µãµÄ¾àÀë
+			//ï¿½ï¿½ï¿½ï¿½(x,y)ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½
 			double sqrt_val = sqrt((input(i + 1, 0) - input(i, 0)) * (input(i + 1, 0) - input(i, 0)) +
 				(input(i + 1, 1) - input(i, 1)) * (input(i + 1, 1) - input(i, 1)));
-			//¼ÆËã½Ç¶È
+			//ï¿½ï¿½ï¿½ï¿½Ç¶ï¿½
 			double sin_a = (input(i + 1, 1) - input(i, 1)) / sqrt_val;
 			double cos_a = (input(i + 1, 0) - input(i, 0)) / sqrt_val;
-			//Á½µãÖ®¼äÒª²åÖµµÄ²åÖµµãµÄÊýÁ¿
-			int num = dis / interval_dis;  //·Ö¸î
-			//²åÈëµã
+			//ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½Òªï¿½ï¿½Öµï¿½Ä²ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			int num = dis / interval_dis;  //ï¿½Ö¸ï¿½
+			//ï¿½ï¿½ï¿½ï¿½ï¿½
 			for (int j = 0; j < num; j++)
 			{
-				// i=0,j=0µÄÊ±ºòÆäÊµÊÇ²åÈëÆðµã
+				// i=0,j=0ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Êµï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				p.x = input(i, 0) + j * interval_dis * cos_a;
 				p.y = input(i, 1) + j * interval_dis * sin_a;
 				p.z = input(i, 2);
@@ -172,14 +172,14 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 			}
 		}
 		else {
-			// ÓÐÐ©µãÔ­±¾±È½Ï½ü£¬²»ÐèÒª²åµã£¬µ«ÊÇÒ²Òª²¹½øÈ¥£¬²»È»»áÈ±Ê§,dis >= 1·ÀÖ¹µãÌ«ÃÜ¼¯
+			// ï¿½ï¿½Ð©ï¿½ï¿½Ô­ï¿½ï¿½ï¿½È½Ï½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½Ò²Òªï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½È±Ê§,dis >= 1ï¿½ï¿½Ö¹ï¿½ï¿½Ì«ï¿½Ü¼ï¿½
 			p.x = input(i, 0);
 			p.y = input(i, 1);
 			p.z = input(i, 2);
 			vec_3d.push_back(p);
 		}
 	}
-	// 4.Â©ÁËÖÕµã£¬ÐèÒª¼ÓÉÏ
+	// 4.Â©ï¿½ï¿½ï¿½Õµã£¬ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
 	p.x = input(input.rows() - 1, 0);
 	p.y = input(input.rows() - 1, 1);
 	p.z = input(input.rows() - 1, 2);
@@ -202,7 +202,7 @@ double referenceLine::calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3)
 	c = sqrt((p3.x - p1.x) * (p3.x - p1.x) + (p3.y - p1.y) * (p3.y - p1.y));
 	cosA = (b * b + c * c - a * a) / (2 * b * c);
 	sinA = sqrt(1 - cosA * cosA);
-	r = 0.5 * a / sinA;//ÀûÓÃÈý½ÇÐÎÄÚ½ÓÔ²ºÍÍâ½ÓÔ²µÄ¹ØÏµºÍÕýÓàÏÒ¶¨Àí£¬ÇóµÃÔ²µÄ°ë¾¶£¬½ø¶øµÃµ½ÇúÂÊk
+	r = 0.5 * a / sinA;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½Ô²ï¿½ï¿½ï¿½ï¿½ï¿½Ô²ï¿½Ä¹ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô²ï¿½Ä°ë¾¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½k
 	k = 1 / r;
 	return k;
 }
@@ -230,7 +230,7 @@ void referenceLine::get_kappa(std::vector<std::pair<double, double>> center_poin
 		r.y = a.y;
 		r.kappa = k;
 		RefMsg.emplace_back(r);
-	}//½«Ç°n-2¸öµãµÄÐÅÏ¢´æÈëvector
+	}//ï¿½ï¿½Ç°n-2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½vector
 	a.x = center_point_xy_final[RefPointCounter - 2].first;
 	a.y = center_point_xy_final[RefPointCounter - 2].second;
 	b.x = center_point_xy_final[RefPointCounter - 1].first;
@@ -245,5 +245,5 @@ void referenceLine::get_kappa(std::vector<std::pair<double, double>> center_poin
 	r.y = b.y;
 	r.kappa = k2;
 	RefMsg.emplace_back(r);
-	//ÀûÓÃ²Î¿¼ÏßÖÐ×îºóÁ½¸öµãºÍ×î³õµÄÁ½¸öµã£¬»ñµÃÃ¿¸öRefPointµÄÇúÂÊ²¢´æÈëRefMsg
+	//ï¿½ï¿½ï¿½Ã²Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½RefPointï¿½ï¿½ï¿½ï¿½ï¿½Ê²ï¿½ï¿½ï¿½ï¿½ï¿½RefMsg
 }
