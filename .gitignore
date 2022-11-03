@@ -4,3 +4,4 @@ in.txt
 out.txt
 obj
 lib
+include/eigen
