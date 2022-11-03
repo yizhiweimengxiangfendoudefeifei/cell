@@ -85,6 +85,7 @@ void ModelOutput(UserData* userData) {
             }
             if (pGlobal->ego != nullptr) {
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
+                std::cout << "targetPath.size: " << targetPath.size() << std::endl;
                 double steer = control::calculateSteering(targetPath, pEgo);
                 //cout << "steer: " << steer << endl;
                 if (pEgo->speed * 3.6 > 10) {

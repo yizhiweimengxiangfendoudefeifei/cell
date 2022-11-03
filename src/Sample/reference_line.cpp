@@ -10,9 +10,9 @@ void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasi
 	std::cout << "************************" << std::endl;
 	for (int i = 0; i < pLidar->header.width; ++i) {
 		double heading = std::cos(pEgo->yaw) * pLidar->items[i].OBJ_S_X + (-std::sin(pEgo->yaw)) * pLidar->items[i].OBJ_S_Y;
-		if (heading < -0.85) {
+		/*if (heading < -0.85) {
 			continue;
-		}
+		}*/
 		if (pLidar->items[i].OBJ_S_Dist < 30) {
 			if (pLidar->items[i].shape == 2) {
 				// ´æ´¢ÍâÈ¦µÄ×ø±ê

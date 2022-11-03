@@ -80,8 +80,6 @@ private:
 	int RefPointCounter;//���յĲο��ߵ㼯�е������
 	std::vector<int> match_point_index_set_outter;// ����Ȧ׶Ͱ��Ӧ������ֵ
 	std::vector<int> match_point_index_set_inner;
-	std::vector<std::pair<double, double>> in_xy;// ��Ȧ��Ӧ�����������Ȧindex
-	std::vector<std::pair<double, double>> out_xy;
 	int inner = 0;// ����Ȧ׶Ͱ��
 	int outter = 0;
 
