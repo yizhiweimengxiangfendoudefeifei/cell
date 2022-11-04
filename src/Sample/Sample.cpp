@@ -59,40 +59,42 @@ void ModelOutput(UserData* userData) {
                 referenceline.centerPoint();
 
                 // interpolation algorithm
-                //Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
-                //std::vector<std::pair<double, double>> output;
-                //referenceline.average_interpolation(input, output, 0.5, 0.6);
-                //cout << "output.size: " << output.size() << endl;
-                //referenceline.set_center_point_xy_final(output);// �õ����յĲο���
-
+                if (referenceline.get_center_point_xy_sort().size() > 0) {
+                    Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
+                    std::vector<std::pair<double, double>> output;
+                    referenceline.average_interpolation(input, output, 0.5, 1.0);
+                    referenceline.set_center_point_xy_final(output);
+                }
             }
             // control class
             EgoControl* pEgoCtrl = nullptr;
             if (pGlobal->ego_control != nullptr) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
                 
-                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// �ο�·��
-                double steer = control::calculateSteering(targetPath, pEgo);
+                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_final();
+                cout << "targetPath.size: " << targetPath.size() << endl;
                 //cout << "steer: " << steer << endl;
-                if (pEgo->speed * 3.6 > 10) {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 1;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
-                }
-                else {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 1;
-                    pEgoCtrl->brake = 0;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
-                }
-                
+                if (targetPath.size() > 0) {
+                    double steer = control::calculateSteering(targetPath, pEgo);
+                    if (pEgo->speed * 3.6 > 10) {
+                        pEgoCtrl->time = userData->time;
+                        pEgoCtrl->valid = 1;
+                        pEgoCtrl->throttle = 0;
+                        pEgoCtrl->brake = 1;
+                        pEgoCtrl->steer = steer;
+                        pEgoCtrl->mode = 1;
+                        pEgoCtrl->gear = 1;
+                    }
+                    else {
+                        pEgoCtrl->time = userData->time;
+                        pEgoCtrl->valid = 1;
+                        pEgoCtrl->throttle = 1;
+                        pEgoCtrl->brake = 0;
+                        pEgoCtrl->steer = steer;
+                        pEgoCtrl->mode = 1;
+                        pEgoCtrl->gear = 1;
+                    }
+                }                
             }
         }
     }

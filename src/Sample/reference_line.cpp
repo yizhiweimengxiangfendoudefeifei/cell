@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include "reference_line.h"
 
@@ -80,7 +78,7 @@ void referenceLine::sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSim
 
 void referenceLine::centerPoint() {
 	for (int i = 0; i < this->center_point_xy.size(); ++i) {
-		center_point_xy_sort.emplace_back(this->center_point_xy[this->match_point_index_set_cen[i]].first,
+		this->center_point_xy_sort.emplace_back(this->center_point_xy[this->match_point_index_set_cen[i]].first,
 			this->center_point_xy[this->match_point_index_set_cen[i]].second);
 	}
 }
@@ -92,10 +90,9 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 	double distance) {
 	// 1.定义一个容器，类型为Point3d_s,即（x,y,z）
 	std::vector<Point3d_s> vec_3d;
-	std::vector<Point3d_s> n_vec;
 	Point3d_s p;
 	// 2.遍历
-	for (int i = 0; i < input.size() - 1; ++i) {
+	for (int i = 0; i < input.rows() - 1; ++i) {
 		double dis = (input.row(i + 1) - input.row(i)).norm();
 		// 距离过长进行插点
 		if (dis >= distance) {
@@ -106,7 +103,7 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 			double sin_a = (input(i + 1, 1) - input(i, 1)) / sqrt_val;
 			double cos_a = (input(i + 1, 0) - input(i, 0)) / sqrt_val;
 			// 两点之间要插值的插值点的数量
-			int num = dis / interval_dis;  //
+			int num = dis / interval_dis;
 			// 插入点
 			for (int j = 0; j < num; j++)
 			{
@@ -117,7 +114,7 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 				vec_3d.push_back(p);
 			}
 		}
-		else {
+		else if(dis < distance){
 			// 有些点原本比较近，不需要插点，但是也要补进去，不然会缺失,dis >= 1防止点太密集
 			p.x = input(i, 0);
 			p.y = input(i, 1);
@@ -133,8 +130,6 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 	// 4.output
 	for (std::vector<Point3d_s>::iterator it = vec_3d.begin(); it != vec_3d.end(); it++) {
 		output.emplace_back((*it).x, (*it).y);
-		/*std::cout << output[num_out].first << "   " << output[num_out].second << std::endl;
-		num_out++;*/
 	}
 		
 }
