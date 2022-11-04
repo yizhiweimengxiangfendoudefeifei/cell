@@ -1,4 +1,4 @@
-#include <PanoSimApi.h>
+﻿#include <PanoSimApi.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -59,12 +59,12 @@ void ModelOutput(UserData* userData) {
                 referenceline.centerPoint();
 
                 // interpolation algorithm
-                //Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
-                //std::vector<std::pair<double, double>> output;
-                //referenceline.average_interpolation(input, output, 0.5, 0.6);
-                //cout << "output.size: " << output.size() << endl;
-                //referenceline.set_center_point_xy_final(output);// �õ����յĲο���
-
+                if (referenceline.get_center_point_xy_sort().size() > 0) {
+                    Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
+                    std::vector<std::pair<double, double>> output;
+                    referenceline.average_interpolation(input, output, 0.5, 1.0);
+                    referenceline.set_center_point_xy_final(output);
+                }
             }
             // control class
             EgoControl* pEgoCtrl = nullptr;
