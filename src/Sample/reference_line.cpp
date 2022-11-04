@@ -16,6 +16,10 @@ void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
 			this->in_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
 			this->inner++;
 		}
+		else {
+			this->yellow_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
+			this - yellower++;
+		}
 	}
 }
 

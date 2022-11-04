@@ -21,10 +21,12 @@ using PanoSimBasicsBus::EgoControl;
 using PanoSimBasicsBus::EGO_FORMAT;
 using PanoSimBasicsBus::Ego;
 
+
 struct GlobalData {
     BusAccessor* lidar;
     BusAccessor* ego_control, *ego;
     bool turn=false;
+    int  times = 0;
 };
 
 void PrintParameters(UserData* userData);
@@ -74,6 +76,7 @@ void ModelOutput(UserData* userData) {
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// �ο�·��
                 double steer = control::calculateSteering(targetPath, pEgo);
                 //cout << "steer: " << steer << endl;
+
                 if (pEgo->speed * 3.6 > 10) {
                     pEgoCtrl->time = userData->time;
                     pEgoCtrl->valid = 1;
@@ -94,6 +97,7 @@ void ModelOutput(UserData* userData) {
                 }
                 
             }
+
         }
     }
 }

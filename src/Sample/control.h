@@ -42,6 +42,7 @@ public:
 				break;
 			}
 		}
+
 		std::cout << "forwardIndex: " << forwardIndex << std::endl;
 		double deltaAlfa = atan2(targetPath[forwardIndex].second,
 			targetPath[forwardIndex].first);// alfa
