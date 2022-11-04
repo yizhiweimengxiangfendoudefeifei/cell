@@ -27,6 +27,7 @@ struct GlobalData {
     BusAccessor* ego_control, *ego;
     bool turn=false;
     int  times = 0;
+    bool flg;
 };
 
 void PrintParameters(UserData* userData);
@@ -80,23 +81,37 @@ void ModelOutput(UserData* userData) {
                 double steer = control::calculateSteering(targetPath, pEgo);
                 cout << "steer: " << steer << endl;
                 double thr = control::calculateThrottleBreak(targetPath, pEgo);
-                
+                double yellodist = control::calculate_yellowdist(referenceline.get_yellow_point_xy_final());
                 pEgoCtrl->time = userData->time;
                 pEgoCtrl->valid = 1;
-                if (thr > 0) {
-                    pEgoCtrl->throttle = thr;
-                    pEgoCtrl->brake = 0;
+                if (pGlobal->times <4 ) {
+                    if yellodist > 0.5{
+                        if (thr > 0) {
+                            pEgoCtrl->throttle = thr;
+                            pEgoCtrl->brake = 0;
+                        }
+                        else {
+                            pEgoCtrl->throttle = 0;
+                            pEgoCtrl->brake = -thr;
+                        }
+                        pEgoCtrl->steer = steer;
+                        pEgoCtrl->mode = 1;
+                        pEgoCtrl->gear = 1;
+                        pGlobal->flg = false;
+                    }
+                    else {
+                        pGlobal->flg = true;
+                        pGlobal->times++;
+                    }
                 }
                 else {
                     pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = -thr;
+                    pEgoCtrl->brake = 1;
                 }
+
+
                 
-                pEgoCtrl->steer = steer;
-                pEgoCtrl->mode = 1;
-                pEgoCtrl->gear = 1;
-                
-                
+
             }
 
         }

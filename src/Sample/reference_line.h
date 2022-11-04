@@ -72,7 +72,9 @@ public:
 	std::vector<std::pair<double, double>> get_center_point_xy_final() {
 		return center_point_xy_final;
 	}
-
+	std::vector<std::pair<double, double>> get_yellow_point_xy_final() {
+		return yellow_xy;
+	}
 	void set_center_point_xy_final(std::vector<std::pair<double, double>> input) {
 		this->center_point_xy_final = input;
 	}
