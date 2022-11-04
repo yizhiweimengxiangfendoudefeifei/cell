@@ -73,25 +73,26 @@ void ModelOutput(UserData* userData) {
                 
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// �ο�·��
                 double steer = control::calculateSteering(targetPath, pEgo);
-                //cout << "steer: " << steer << endl;
-                if (pEgo->speed * 3.6 > 10) {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 1;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
+                cout << "steer: " << steer << endl;
+                referenceline.get_kappa(targetPath);
+                auto targetPathwithKappa = referenceline.getRefMsg();
+                double thr = control::calculateThrottleBreak(targetPath, pEgo);
+                
+                pEgoCtrl->time = userData->time;
+                pEgoCtrl->valid = 1;
+                if (thr > 0) {
+                    pEgoCtrl->throttle = thr;
+                    pEgoCtrl->brake = 0;
                 }
                 else {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 1;
-                    pEgoCtrl->brake = 0;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
+                    pEgoCtrl->throttle = 0;
+                    pEgoCtrl->brake = -thr;
                 }
+                
+                pEgoCtrl->steer = steer;
+                pEgoCtrl->mode = 1;
+                pEgoCtrl->gear = 1;
+                
                 
             }
         }
