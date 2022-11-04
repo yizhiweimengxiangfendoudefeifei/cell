@@ -90,12 +90,14 @@ private:
 	std::vector<std::pair<double, double>> center_point_xy_final; // centerpoint after interpolation
 	std::vector<std::pair<double, double>> in_xy;// (x,y)
 	std::vector<std::pair<double, double>> out_xy;
+	std::vector<std::pair<double, double>> yellow_xy;
 	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
 	std::vector<RefPoint> RefMsg;//
 	int RefPointCounter;//
 	std::vector<int> match_point_index_set_cen;// sort index  in "sortIndex"
 	int inner = 0;// num of inner bucket
 	int outter = 0;
+	int yellower = 0;
 
 };
 
