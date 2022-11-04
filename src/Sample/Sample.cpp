@@ -77,7 +77,7 @@ void ModelOutput(UserData* userData) {
             if (pGlobal->ego_control != nullptr) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
                 
-                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// �ο�·��
+                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_final();// �ο�·��
                 double steer = control::calculateSteering(targetPath, pEgo);
                 cout << "steer: " << steer << endl;
                 double thr = control::calculateThrottleBreak(targetPath, pEgo);

@@ -31,8 +31,8 @@ public:
 		size_t index = 0;
 		
 		size_t forwardIndex = 0;
-		double minProgDist = 2;
-		double progTime = 0.3;
+		double minProgDist = 3;
+		double progTime = 0.5;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
@@ -52,6 +52,7 @@ public:
 		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) +
 			pow(targetPath[forwardIndex].first, 2)); // distance 
 		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 3.33 / (1 * M_PI);
+		
 		if (steer > 120) {
 			steer = 120;
 		}
@@ -66,7 +67,7 @@ public:
 		size_t forwardIndex = 0;
 		size_t thisIndex = 0;
 		double minProgDist = 4;
-		double progTime = 1.5;
+		double progTime = 1.6;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
@@ -81,14 +82,15 @@ public:
 		}
 		auto nearKappa = calculateKappa(targetPath, 0);
 		auto farKappa = calculateKappa(targetPath, forwardIndex);
-		auto lastKappa = calculateKappa(targetPath, targetPath.size() - 5);
+		auto lastKappa = calculateKappa(targetPath, targetPath.size() - 15);
 		auto this_kappa = nearKappa > farKappa ? nearKappa : farKappa;
-		if (lastKappa > 0.27) this_kappa = lastKappa * 1.5;
+		if (lastKappa > 0.27) this_kappa = lastKappa * 1.1;
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
-		auto max_v = sqrt( 2.7 / this_kappa);
-		std::cout << "nearKappa : " << nearKappa << "\t farKappa : " << farKappa << std::endl;
-		std::cout << "max_v is :" << max_v  << "\t and pEgo->speed is : " << pEgo->speed << std::endl;
+		auto max_v = sqrt( 1.8 / this_kappa);
+		std::cout << "longtitude forwardIndex: " << forwardIndex << std::endl;
+		std::cout << "nearKappa : " << nearKappa << "\t farKappa : " << farKappa << "\t lastKappa :" << lastKappa << std::endl;
+		std::cout << "max_v is :" << max_v  << "\tand pEgo->speed is : " << pEgo->speed << std::endl;
 		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
@@ -119,10 +121,10 @@ public:
 		Point2d_s p1, p2, p3;
 		p1.x = targetPath[idx].first;
 		p1.y = targetPath[idx].second;
-		p2.x = targetPath[idx+1].first;
-		p2.y = targetPath[idx+1].second;
-		p3.x = targetPath[idx + 2].first;
-		p3.y = targetPath[idx + 2].second;
+		p2.x = targetPath[idx+5].first;
+		p2.y = targetPath[idx+5].second;
+		p3.x = targetPath[idx + 10].first;
+		p3.y = targetPath[idx + 10].second;
 		
 		double a, b, c, sinA, cosA, r, k;
 
