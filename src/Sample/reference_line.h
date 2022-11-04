@@ -84,13 +84,15 @@ public:
 	std::vector<RefPoint> getRefMsg() {
 		return this->RefMsg;
 	}
+
+public:
+	std::vector<std::pair<double, double>> center_point_xy;
+	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
 private:
-	std::vector<std::pair<double, double>> center_point_xy; 
 	std::vector<std::pair<double, double>> center_point_xy_sort;// centerpoint after sort
 	std::vector<std::pair<double, double>> center_point_xy_final; // centerpoint after interpolation
 	std::vector<std::pair<double, double>> in_xy;// (x,y)
 	std::vector<std::pair<double, double>> out_xy;
-	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
 	std::vector<RefPoint> RefMsg;//
 	int RefPointCounter;//
 	std::vector<int> match_point_index_set_cen;// sort index  in "sortIndex"

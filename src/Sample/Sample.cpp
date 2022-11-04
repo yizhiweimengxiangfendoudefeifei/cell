@@ -64,6 +64,9 @@ void ModelOutput(UserData* userData) {
                     std::vector<std::pair<double, double>> output;
                     referenceline.average_interpolation(input, output, 0.5, 1.0);
                     referenceline.set_center_point_xy_final(output);
+                    referenceline.center_point_xy = referenceline.get_center_point_xy_final();
+                    referenceline.match_point_index_set.clear();
+                    referenceline.sortIndex(pLidar, pEgo);
                 }
             }
             // control class
@@ -74,8 +77,6 @@ void ModelOutput(UserData* userData) {
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// �ο�·��
                 double steer = control::calculateSteering(targetPath, pEgo);
                 cout << "steer: " << steer << endl;
-                referenceline.get_kappa(targetPath);
-                auto targetPathwithKappa = referenceline.getRefMsg();
                 double thr = control::calculateThrottleBreak(targetPath, pEgo);
                 
                 pEgoCtrl->time = userData->time;
