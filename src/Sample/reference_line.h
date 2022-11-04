@@ -6,8 +6,7 @@
 #include <Eigen\Dense>
 #include <SensorBusDef.h>
 #include <BasicsBusDef.h>
-/*���ܣ�����׶Ͱλ�ã����ɳ�����ʻ�ο���
-*/
+
 struct Point3d_s
 {
 	double x;
@@ -34,18 +33,35 @@ class referenceLine
 public:
 	referenceLine() = default;
 	~referenceLine() = default;
-	/*����׶Ͱ��ɫ����Ȧ����Ȧ��׶Ͱ�ֱ�洢����
-	*/
+	/**
+	 * @brief save (x,y) according to color
+	 * 
+	 * @param pLidar 
+	 */
 	void shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar);
-	// �洢���ĵ������
+	/**
+	 * @brief calc centerpoint
+	 * 
+	 */
 	void calcCenterPoint();
-	/*������Ȧ��׶ͰѰ�Ҿ����������Ȧ׶Ͱ��index
-	*/
+	/**
+	 * @brief sort centerpoint
+	 * 
+	 * @param pLidar 
+	 * @param pEgo 
+	 */
 	void sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo);
-	/*排序后的数组存在一个新的容器中
+	/* save centerpoint (x,y) according to sort index
 	*/
 	void centerPoint();
-	
+	/**
+	 * @brief interpolation
+	 * 
+	 * @param input enter_point_xy_sort
+	 * @param output enter_point_xy_final
+	 * @param interval_dis 
+	 * @param distance max dis
+	 */
 	void average_interpolation(Eigen::MatrixXd& input, std::vector<std::pair<double, double>>& output, double interval_dis,
 		double distance);
 
@@ -57,7 +73,10 @@ public:
 		return center_point_xy_final;
 	}
 
-	double calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3);//�������㷨����õ������
+	void set_center_point_xy_final(std::vector<std::pair<double, double>> input) {
+		this->center_point_xy_final = input;
+	}
+	double calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3);// 
 
 	void get_kappa(std::vector<std::pair<double, double>> center_point_xy_final);
 
@@ -66,17 +85,16 @@ public:
 		return this->RefMsg;
 	}
 private:
-	std::vector<std::pair<double, double>> center_point_xy; // �洢�ο��ߵ�x y
-	std::vector<std::pair<double, double>> center_point_xy_sort;
-	std::vector<std::pair<double, double>> center_point_xy_final; // �洢������ֵ�ο��ߵ�x y
-	std::vector<std::pair<double, double>> in_xy;// ����Ȧ����洢����
-	std::vector<std::pair<double, double>> out_xy;// ����Ȧ����洢����
-	std::vector<int> match_point_index_set;// ��Ȧ��Ӧ�����������Ȧindex
-	std::vector<RefPoint> RefMsg;//�洢���յĲο�����Ϣ��������x��y����͸õ������
-	int RefPointCounter;//���յĲο��ߵ㼯�е������
-	std::vector<int> match_point_index_set_cen;// ����Ȧ׶Ͱ��Ӧ������ֵ
-	std::vector<int> match_point_index_set_inner;
-	int inner = 0;// ����Ȧ׶Ͱ��
+	std::vector<std::pair<double, double>> center_point_xy; 
+	std::vector<std::pair<double, double>> center_point_xy_sort;// centerpoint after sort
+	std::vector<std::pair<double, double>> center_point_xy_final; // centerpoint after interpolation
+	std::vector<std::pair<double, double>> in_xy;// (x,y)
+	std::vector<std::pair<double, double>> out_xy;
+	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
+	std::vector<RefPoint> RefMsg;//
+	int RefPointCounter;//
+	std::vector<int> match_point_index_set_cen;// sort index  in "sortIndex"
+	int inner = 0;// num of inner bucket
 	int outter = 0;
 
 };

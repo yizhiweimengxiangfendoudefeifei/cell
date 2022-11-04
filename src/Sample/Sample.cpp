@@ -1,4 +1,4 @@
-﻿#include <PanoSimApi.h>
+#include <PanoSimApi.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -6,8 +6,7 @@
 #include <fstream>
 
 #include "control.h"
-/*主函数入口，panosim每10ms调用一次这个程序
-*/
+
 using std::string;
 using std::string_view;
 using std::vector;
@@ -44,56 +43,37 @@ void ModelStart(UserData* userData) {
 
 void ModelOutput(UserData* userData) {
     if (userData != nullptr) {
-        auto pGlobal = static_cast<GlobalData*>(userData->state);// 类型转换
+        auto pGlobal = static_cast<GlobalData*>(userData->state);
         if (pGlobal != nullptr) {
-            referenceLine referenceline;// 生成一个参考线对象
-            // 传感器
+            referenceLine referenceline;// referenceline class init
+            
             Lidar_ObjList_G* pLidar = nullptr;
             Ego* pEgo = nullptr;
             if (pGlobal->lidar != nullptr && pGlobal->ego != nullptr) {
                 pLidar = static_cast<Lidar_ObjList_G*>(pGlobal->lidar->GetHeader());
                 pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
+                // reference_line calc
                 referenceline.shape(pLidar);
-                referenceline.calcCenterPoint();// referenceline这个对象包含所有中心点的坐标
+                referenceline.calcCenterPoint();
                 referenceline.sortIndex(pLidar, pEgo);
                 referenceline.centerPoint();
-                
-                
-                
-                // 对道路参考线进行排序
-                //size_t index = mactPoint(targetPath);
-                
-                // 插值函数中输入是eigen数据类型，我们的输入是vector<pair>,因此需要类型转换
-                //Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy());
-                /*std::cout << "input size: " << input.size() << std::endl;
-                std::vector<std::pair<double, double>> output;
-                referenceline.average_interpolation(input, output, 0.2, 0.6);*/
+
+                // interpolation algorithm
+                //Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
+                //std::vector<std::pair<double, double>> output;
+                //referenceline.average_interpolation(input, output, 0.5, 0.6);
                 //cout << "output.size: " << output.size() << endl;
-                //referenceline.set_center_point_xy_final(output);// 得到最终的参考线
-                //referenceline.get_center_point_xy_final() = output;// 得到最终的参考线
+                //referenceline.set_center_point_xy_final(output);// �õ����յĲο���
 
             }
-            // 自车控制
+            // control class
             EgoControl* pEgoCtrl = nullptr;
             if (pGlobal->ego_control != nullptr) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
-            }
-            // 自车状态类，在这里写控制
-            if (pGlobal->ego != nullptr) {
-                //if (!(pGlobal->turn)) {
-                //    std::cout << "11111111111111" << std::endl;
-                //    std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
-                //    for (int i = 0; i < targetPath.size(); ++i) {
-                //        pGlobal->center_point_xy_global.emplace_back(targetPath[i].first, targetPath[i].second);
-                //        std::cout << pGlobal->center_point_xy_global[i].first << "   " << pGlobal->center_point_xy_global[i].second << std::endl;
-                //    }
-                //    pGlobal->turn = true;
-                //}
-                //std::cout << "pGlobal->center_point_xy_global.size: " << pGlobal->center_point_xy_global.size() << std::endl;
-                // 判断是否转向
-                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// 参考路径
+                
+                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_sort();// �ο�·��
                 double steer = control::calculateSteering(targetPath, pEgo);
-                cout << "steer: " << steer << endl;
+                //cout << "steer: " << steer << endl;
                 if (pEgo->speed * 3.6 > 10) {
                     pEgoCtrl->time = userData->time;
                     pEgoCtrl->valid = 1;
@@ -102,49 +82,18 @@ void ModelOutput(UserData* userData) {
                     pEgoCtrl->steer = steer;
                     pEgoCtrl->mode = 1;
                     pEgoCtrl->gear = 1;
-            
-                    if (pGlobal->ego == nullptr) {
-                        cout << "this is null" << endl;
-                    }
-                    if (pGlobal->ego != nullptr) {
-                        std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy();// 参考路径
-                        referenceline.get_kappa(targetPath);
-                        auto targetPathWithKappa = referenceline.getRefMsg();
-                        std::cout << "targetPath.size: " << targetPath.size() << std::endl;
-                        std::cout << "targetPathWithKappa.size: " << targetPathWithKappa.size() << std::endl;
-
-                        double steer = control::calculateSteering(targetPath, pEgo);
-                        //cout << "steer: " << steer << endl;
-                        double thr = control::calculateThrottleBreak(targetPathWithKappa, pEgo);
-                        cout << "thr: " << thr << endl;
-
-                        pEgoCtrl->time = userData->time;
-                        pEgoCtrl->valid = 1;
-                        if (thr > 0) {
-                            pEgoCtrl->throttle = thr;
-                            pEgoCtrl->brake = 0;
-                        }
-                        else {
-                            pEgoCtrl->throttle = 0;
-                            pEgoCtrl->brake = -thr;
-                        }
-                        pEgoCtrl->steer = steer;
-                        pEgoCtrl->mode = 1;
-                        pEgoCtrl->gear = 1;
-                    }
-                    //if (pLidar != nullptr && pEgoCtrl != nullptr)
-                    //{
-                    //    /*if (pLidar->header.width > 0) {
-                    //        cout << "==============================" << endl;
-                    //        pEgoCtrl->time = userData->time;
-                    //        pEgoCtrl->valid = 1;
-                    //        pEgoCtrl->throttle = 1;
-                    //        pEgoCtrl->brake = 0;
-                    //        pEgoCtrl->steer = 0;
-                    //        pEgoCtrl->mode = 1;
-                    //        pEgoCtrl->gear = 1;
-                    //    }*/
-                    //}
+                }
+                else {
+                    pEgoCtrl->time = userData->time;
+                    pEgoCtrl->valid = 1;
+                    pEgoCtrl->throttle = 1;
+                    pEgoCtrl->brake = 0;
+                    pEgoCtrl->steer = steer;
+                    pEgoCtrl->mode = 1;
+                    pEgoCtrl->gear = 1;
+                }
+                
+            }
         }
     }
 }
@@ -204,7 +153,7 @@ void PrintParameters(UserData* userData)
     }
 }
 
-// 将vecotr数据类型转换为eigen
+// vector eigen type transform
 Eigen::MatrixXd vector_eigen(const std::vector<std::pair<double, double>> &input) {
     Eigen::MatrixXd out = Eigen::MatrixXd::Zero(input.size(), 3);
     for (int i = 0; i < input.size(); ++i) {
@@ -215,7 +164,7 @@ Eigen::MatrixXd vector_eigen(const std::vector<std::pair<double, double>> &input
     return out;
 }
 
-// 找匹配点的全局函数
+
 
 //size_t mactPoint(std::vector<std::pair<double, double>> &path) {
 //    std::vector<double> pts;

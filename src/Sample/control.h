@@ -4,8 +4,10 @@
 #pragma once
 #include "reference_line.h"
 #include <corecrt_math_defines.h>
-/*���ܣ����Ĳο�����Ϣ��������λ��������š�ɲ����ת�Ǹ�������
-*/
+/**
+ * @brief control class, lateral && longitudinal
+ * 
+ */
 
 class control
 {
@@ -22,19 +24,16 @@ public:
 	}
 
 	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
-		std::vector<double> pts;
-		for (size_t i = 0; i < targetPath.size(); ++i) {
-			pts.push_back(pow((double)targetPath[i].first, 2) + pow((double)targetPath[i].second, 2));
-		}
-		size_t index = std::min_element(pts.begin(), pts.end()) - pts.begin();// ����������������ĵ������
-		std::cout << "index: " << index << std::endl;
+		// Nearest point index after sort is 0
+		size_t index = 0;
+		
 		size_t forwardIndex = 0;
-		double minProgDist = 0.5f;
-		double progTime = 0.1f;
+		double minProgDist = 3;
+		double progTime = 0.5;
 		double mainVehicleSpeed = pEgo->speed;
-		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;// Ԥ�����
+		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
-		// �ҵ�Ԥ����index
+		
 		for (; index < targetPath.size(); ++index) {
 			forwardIndex = index;
 			double distance = sqrtf((double)pow(targetPath[index].first, 2) +
@@ -43,17 +42,17 @@ public:
 				break;
 			}
 		}
-		double psi = (double)pEgo->yaw;// �����
+		std::cout << "forwardIndex: " << forwardIndex << std::endl;
 		double deltaAlfa = atan2(targetPath[forwardIndex].second,
-			targetPath[forwardIndex].first) - psi;// ����ƫ��
+			targetPath[forwardIndex].first);// alfa
 		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) +
-			pow(targetPath[forwardIndex].first, 2)); // ����ƫ��
-		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 5 / (1 * M_PI);
-		if (steer > 30) {
-			steer = 30;
+			pow(targetPath[forwardIndex].first, 2)); // distance 
+		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 4.5 / (1 * M_PI);
+		if (steer > 60) {
+			steer = 60;
 		}
-		else if (steer < -30) {
-			steer = -30;
+		else if (steer < -60) {
+			steer = -60;
 		}
 		return steer;
 	}
