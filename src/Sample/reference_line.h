@@ -50,7 +50,7 @@ public:
 	 * @param pLidar 
 	 * @param pEgo 
 	 */
-	void sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo);
+	void sortIndex();
 	/* save centerpoint (x,y) according to sort index
 	*/
 	void centerPoint();
@@ -66,14 +66,14 @@ public:
 		double distance);
 
 	std::vector<std::pair<double, double>> get_center_point_xy_sort() {
-		return center_point_xy_sort;
+		return this->center_point_xy_sort;
 	}
 
 	std::vector<std::pair<double, double>> get_center_point_xy_final() {
-		return center_point_xy_final;
+		return this->center_point_xy_final;
 	}
 	std::vector<std::pair<double, double>> get_yellow_point_xy_final() {
-		return yellow_xy;
+		return this->yellow_xy;
 	}
 	void set_center_point_xy_final(std::vector<std::pair<double, double>> input) {
 		this->center_point_xy_final = input;
@@ -86,14 +86,16 @@ public:
 	std::vector<RefPoint> getRefMsg() {
 		return this->RefMsg;
 	}
+public:
+	std::vector<std::pair<double, double>> center_point_xy;
+	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
 private:
-	std::vector<std::pair<double, double>> center_point_xy; 
+	 
 	std::vector<std::pair<double, double>> center_point_xy_sort;// centerpoint after sort
 	std::vector<std::pair<double, double>> center_point_xy_final; // centerpoint after interpolation
 	std::vector<std::pair<double, double>> in_xy;// (x,y)
 	std::vector<std::pair<double, double>> out_xy;
 	std::vector<std::pair<double, double>> yellow_xy;
-	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
 	std::vector<RefPoint> RefMsg;//
 	int RefPointCounter;//
 	std::vector<int> match_point_index_set_cen;// sort index  in "sortIndex"

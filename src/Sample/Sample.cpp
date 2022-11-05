@@ -1,4 +1,4 @@
-﻿#include <PanoSimApi.h>
+#include <PanoSimApi.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -58,7 +58,7 @@ void ModelOutput(UserData* userData) {
                 // reference_line calc
                 referenceline.shape(pLidar);
                 referenceline.calcCenterPoint();
-                referenceline.sortIndex(pLidar, pEgo);
+                referenceline.sortIndex();
                 referenceline.centerPoint();
 
                 // interpolation algorithm
@@ -69,7 +69,7 @@ void ModelOutput(UserData* userData) {
                     referenceline.set_center_point_xy_final(output);
                     referenceline.center_point_xy = referenceline.get_center_point_xy_final();
                     referenceline.match_point_index_set.clear();
-                    referenceline.sortIndex(pLidar, pEgo);
+                    referenceline.sortIndex();
                 }
             }
             // control class
@@ -84,34 +84,42 @@ void ModelOutput(UserData* userData) {
                 double yellodist = control::calculate_yellowdist(referenceline.get_yellow_point_xy_final());
                 pEgoCtrl->time = userData->time;
                 pEgoCtrl->valid = 1;
-                if (pGlobal->times <4 ) {
-                    if yellodist > 0.5{
-                        if (thr > 0) {
-                            pEgoCtrl->throttle = thr;
-                            pEgoCtrl->brake = 0;
-                        }
-                        else {
-                            pEgoCtrl->throttle = 0;
-                            pEgoCtrl->brake = -thr;
-                        }
-                        pEgoCtrl->steer = steer;
-                        pEgoCtrl->mode = 1;
-                        pEgoCtrl->gear = 1;
-                        pGlobal->flg = false;
-                    }
-                    else {
-                        pGlobal->flg = true;
-                        pGlobal->times++;
-                    }
+                if (thr > 0) {
+                    pEgoCtrl->throttle = thr;
+                    pEgoCtrl->brake = 0;
                 }
                 else {
                     pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 1;
+                    pEgoCtrl->brake = -thr;
                 }
-
-
-                
-
+                pEgoCtrl->steer = steer;
+                pEgoCtrl->mode = 1;
+                pEgoCtrl->gear = 1;
+                // pGlobal->flg = false;
+                // if (pGlobal->times <4 ) {
+                //     if (yellodist > 0.5){
+                //         if (thr > 0) {
+                //             pEgoCtrl->throttle = thr;
+                //             pEgoCtrl->brake = 0;
+                //         }
+                //         else {
+                //             pEgoCtrl->throttle = 0;
+                //             pEgoCtrl->brake = -thr;
+                //         }
+                //         pEgoCtrl->steer = steer;
+                //         pEgoCtrl->mode = 1;
+                //         pEgoCtrl->gear = 1;
+                //         pGlobal->flg = false;
+                //     }
+                //     else {
+                //         pGlobal->flg = true;
+                //         pGlobal->times++;
+                //     }
+                // }
+                // else {
+                //     pEgoCtrl->throttle = 0;
+                //     pEgoCtrl->brake = 1;
+                // }
             }
 
         }

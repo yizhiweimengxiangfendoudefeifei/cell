@@ -22,8 +22,8 @@ public:
 		}
 		point_index = std::min_element(pts.begin(), pts.end()) - pts.begin();
 	}
-	static double calculate_yellowdist(const std::vector<RefPoint>& targetPath) {
-		double yellodist=pow(((double)targetPath[0].x+ (double)targetPath[1].x)/2, 2) + pow(((double)targetPath[0].y + (double)targetPath[1].y) / 2, 2);
+	static double calculate_yellowdist(const std::vector<std::pair<double, double>>& targetPath) {
+		double yellodist=pow(((double)targetPath[0].first+ (double)targetPath[1].first)/2, 2) + pow(((double)targetPath[0].second + (double)targetPath[1].second) / 2, 2);
 		return yellodist;
 	}
 	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {

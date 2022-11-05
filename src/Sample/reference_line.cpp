@@ -44,7 +44,7 @@ void referenceLine::calcCenterPoint(){
 }
 
 
-void referenceLine::sortIndex(PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) {
+void referenceLine::sortIndex() {
 	int index_cen = 0;
 	std::vector<int> have_seen(this->center_point_xy.size());	
 	double min_dis = (std::numeric_limits<int>::max)();
