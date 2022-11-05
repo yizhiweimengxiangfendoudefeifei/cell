@@ -71,7 +71,7 @@ public:
 		else {
 			this_kappa = farKappa;
 		}
-		if (lastKappa > 0.20) this_kappa = lastKappa * 0.5;
+		if (lastKappa > 0.20) this_kappa = lastKappa * 0.6;
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
 		auto max_v = sqrt( 1.8 / this_kappa);
