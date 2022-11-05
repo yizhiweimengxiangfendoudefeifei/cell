@@ -15,24 +15,13 @@ public:
 	control()=default;
 	~control()=default;
 
-	static void get_nearest_point_idx(const std::vector<RefPoint>& targetPath) {
-		std::vector<double> pts;
-		for (size_t i = 0; i < targetPath.size(); ++i) {
-			pts.push_back(pow((double)targetPath[i].x, 2) + pow((double)targetPath[i].y, 2));
-		}
-		point_index = std::min_element(pts.begin(), pts.end()) - pts.begin();
-	}
-	static double calculate_yellowdist(const std::vector<std::pair<double, double>>& targetPath) {
-		double yellodist=pow(((double)targetPath[0].first+ (double)targetPath[1].first)/2, 2) + pow(((double)targetPath[0].second + (double)targetPath[1].second) / 2, 2);
-		return yellodist;
-	}
 	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
 		// Nearest point index after sort is 0
 		size_t index = 0;
 		
 		size_t forwardIndex = 0;
 		double minProgDist = 3;
-		double progTime = 0.5;
+		double progTime = 0.4;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
@@ -94,12 +83,12 @@ public:
 		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v, pEgo->speed);
+		return PID_Control(max_v > 10 ? 10 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {
 		double dt = 0.01;
-		double kp = 2;
+		double kp = 1;
 		double ki = 0.25;
 		double kd = 1;
 

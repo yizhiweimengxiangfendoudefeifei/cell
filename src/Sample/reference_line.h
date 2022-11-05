@@ -86,23 +86,33 @@ public:
 	std::vector<RefPoint> getRefMsg() {
 		return this->RefMsg;
 	}
+
+	std::pair<double,double> calculate_yellowdist(const std::vector<std::pair<double, double>>& targetPath) {
+		double x = 0, y = 0;
+		for (auto point : targetPath) {
+			x += point.first;
+			y += point.second;
+		}
+		double yellodist = pow(x / targetPath.size(), 2)
+			+ pow(y / targetPath.size(), 2);
+		return std::make_pair(x / targetPath.size(),yellodist);// x_center dis
+	}
+
 public:
 	std::vector<std::pair<double, double>> center_point_xy;
 	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
+	std::vector<std::pair<double, double>> yellow_xy;
 private:
 	 
 	std::vector<std::pair<double, double>> center_point_xy_sort;// centerpoint after sort
 	std::vector<std::pair<double, double>> center_point_xy_final; // centerpoint after interpolation
 	std::vector<std::pair<double, double>> in_xy;// (x,y)
 	std::vector<std::pair<double, double>> out_xy;
-	std::vector<std::pair<double, double>> yellow_xy;
 	std::vector<RefPoint> RefMsg;//
 	int RefPointCounter;//
 	std::vector<int> match_point_index_set_cen;// sort index  in "sortIndex"
 	int inner = 0;// num of inner bucket
 	int outter = 0;
-	int yellower = 0;
-
 };
 
 
