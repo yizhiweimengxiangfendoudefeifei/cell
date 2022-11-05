@@ -83,12 +83,12 @@ public:
 		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v > 0 ? 5 : max_v, pEgo->speed);
+		return PID_Control(max_v > 6 ? 6 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {
 		double dt = 0.01;
-		double kp = 0.10;
+		double kp = 0.12;
 		double ki = 0.01;
 		double kd = 0.01;
 
