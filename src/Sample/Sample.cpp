@@ -78,9 +78,10 @@ void ModelOutput(UserData* userData) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
                 
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_final();
-                double steer = control::calculateSteering(targetPath, pEgo);
+                size_t forwardIndex = control::calc_forwardIndex(targetPath, pEgo);
+                double steer = control::calculateSteering(targetPath, pEgo, forwardIndex);
                 cout << "steer: " << steer << endl;
-                double thr = control::calculateThrottleBreak(targetPath, pEgo);
+                double thr = control::calculateThrottleBreak(targetPath, pEgo, forwardIndex);
                 auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
 
                 pEgoCtrl->time = userData->time;

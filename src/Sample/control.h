@@ -15,26 +15,31 @@ public:
 	control()=default;
 	~control()=default;
 
-	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+	// calc forwardindex
+	static size_t calc_forwardIndex(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
 		// Nearest point index after sort is 0
 		size_t index = 0;
-		
+
 		size_t forwardIndex = 0;
-		double minProgDist = 2;
+		double minProgDist = 3;
 		double progTime = 0.4;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
-		
+
 		for (; index < targetPath.size(); ++index) {
 			forwardIndex = index;
 			double distance = sqrtf((double)pow(targetPath[index].first, 2) +
 				pow((double)targetPath[index].second, 2));
 			if (distance >= progDist) {
-				break;
+				return forwardIndex;
 			}
 		}
+		return 0;
+	}
 
+	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo, size_t forwardIndex) {
+		
 		std::cout << "forwardIndex: " << forwardIndex << std::endl;
 		double deltaAlfa = atan2(targetPath[forwardIndex].second,
 			targetPath[forwardIndex].first);// alfa
@@ -51,24 +56,8 @@ public:
 		return steer;
 	}
 
-	static double calculateThrottleBreak(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+	static double calculateThrottleBreak(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo, size_t forwardIndex) {
 
-		size_t forwardIndex = 0;
-		size_t thisIndex = 0;
-		double minProgDist = 3;
-		double progTime = 0.6;
-		double mainVehicleSpeed = pEgo->speed;
-		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
-
-		for (int index = 0; index < targetPath.size(); ++index) {
-			forwardIndex = index;
-			double distance = sqrtf((double)pow(targetPath[index].first, 2) +
-				pow((double)targetPath[index].second, 2));
-			if (distance > 1) thisIndex = index;
-			if (distance >= progDist) {
-				break;
-			}
-		}
 		auto nearKappa = calculateKappa(targetPath, 0);
 		auto farKappa = calculateKappa(targetPath, forwardIndex);
 		auto lastKappa = calculateKappa(targetPath, targetPath.size() - 15);
