@@ -20,7 +20,7 @@ public:
 		size_t index = 0;
 		
 		size_t forwardIndex = 0;
-		double minProgDist = 3;
+		double minProgDist = 2;
 		double progTime = 0.4;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
@@ -55,8 +55,8 @@ public:
 
 		size_t forwardIndex = 0;
 		size_t thisIndex = 0;
-		double minProgDist = 4;
-		double progTime = 1.6;
+		double minProgDist = 3;
+		double progTime = 0.5;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
@@ -83,25 +83,25 @@ public:
 		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v > 10 ? 10 : max_v, pEgo->speed);
+		return PID_Control(max_v > 0 ? 5 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {
 		double dt = 0.01;
-		double kp = 1;
-		double ki = 0.25;
-		double kd = 1;
+		double kp = 0.10;
+		double ki = 0.01;
+		double kd = 0.01;
 
 		double value_p = (value_target - value_now) / value_target;
 		value_i += (value_target - value_now) * dt / value_target;
-		//double value_d = (value_now - value_last) / dt;
-
-		double control_value = kp * value_p + ki * value_i;
+		double value_d = (value_now - value_last) / dt;
+		
+		double control_value = kp * value_p + ki * value_i + kd * value_d;
 		std::cout << "control_value is : " << control_value << std::endl;
 		if (control_value > 1) control_value = 1;
 		if (control_value < -1) control_value = -1;
 		std::cout << "control_value after limit is : " << control_value << std::endl;
-
+		value_last = value_now;
 		return control_value;
 
 	}
