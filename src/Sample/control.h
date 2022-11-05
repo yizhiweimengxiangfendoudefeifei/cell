@@ -21,7 +21,7 @@ public:
 		size_t index = 0;
 
 		size_t forwardIndex = 0;
-		double minProgDist = 3;
+		double minProgDist = 1;
 		double progTime = 0.4;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
@@ -60,9 +60,15 @@ public:
 
 		auto nearKappa = calculateKappa(targetPath, 0);
 		auto farKappa = calculateKappa(targetPath, forwardIndex);
-		auto lastKappa = calculateKappa(targetPath, targetPath.size() - 15);
-		auto this_kappa = nearKappa > farKappa ? nearKappa : farKappa;
-		if (lastKappa > 0.27) this_kappa = lastKappa * 1.1;
+		auto lastKappa = calculateKappa(targetPath, targetPath.size() - 11);
+		double this_kappa = 0.01;
+		if (nearKappa > farKappa) {
+			this_kappa = nearKappa;
+		}
+		else {
+			this_kappa = farKappa;
+		}
+		if (lastKappa > 0.18) this_kappa = lastKappa;
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
 		auto max_v = sqrt( 1.8 / this_kappa);
@@ -72,13 +78,13 @@ public:
 		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v > 6.6 ? 6.6 : max_v, pEgo->speed);
+		return PID_Control(max_v > 7.5 ? 7.5 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {
 		double dt = 0.01;
-		double kp = 0.15;
-		double ki = 0.01;
+		double kp = 0.30;
+		double ki = 0.1;
 		double kd = 0.01;
 
 		double value_p = (value_target - value_now) / value_target;
