@@ -21,12 +21,15 @@ public:
 		size_t index = 0;
 
 		size_t forwardIndex = 0;
-		double minProgDist = 1;
-		double progTime = 0.4;
+		double minProgDist = 1.5;
+		double progTime = 0.5;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
-
+		if (calculateKappa(targetPath, 1) > 0.3) {
+			progDist = 0.5;
+			std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+		}
 		for (; index < targetPath.size(); ++index) {
 			forwardIndex = index;
 			double distance = sqrtf((double)pow(targetPath[index].first, 2) +
@@ -68,7 +71,7 @@ public:
 		else {
 			this_kappa = farKappa;
 		}
-		if (lastKappa > 0.18) this_kappa = lastKappa;
+		if (lastKappa > 0.20) this_kappa = lastKappa * 0.5;
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
 		auto max_v = sqrt( 1.8 / this_kappa);
@@ -78,7 +81,7 @@ public:
 		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v > 7.5 ? 7.5 : max_v, pEgo->speed);
+		return PID_Control(max_v > 8.5 ? 8.5 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {
@@ -103,12 +106,24 @@ public:
 
 	static double calculateKappa(const std::vector<std::pair<double, double>>& targetPath, int idx) {
 		Point2d_s p1, p2, p3;
-		p1.x = targetPath[idx].first;
-		p1.y = targetPath[idx].second;
-		p2.x = targetPath[idx+5].first;
-		p2.y = targetPath[idx+5].second;
-		p3.x = targetPath[idx + 10].first;
-		p3.y = targetPath[idx + 10].second;
+		if (idx + 10 < targetPath.size()) {
+			p1.x = targetPath[idx].first;
+			p1.y = targetPath[idx].second;
+			p2.x = targetPath[idx + 5].first;
+			p2.y = targetPath[idx + 5].second;
+			p3.x = targetPath[idx + 10].first;
+			p3.y = targetPath[idx + 10].second;
+		}
+		else {
+			int num = idx + 10 - targetPath.size();
+			p1.x = targetPath[idx].first;
+			p1.y = targetPath[idx].second;
+			p2.x = targetPath[num].first;
+			p2.y = targetPath[num].second;
+			p3.x = targetPath[num + 5].first;
+			p3.y = targetPath[num + 5].second;
+		}
+		
 		
 		double a, b, c, sinA, cosA, r, k;
 
