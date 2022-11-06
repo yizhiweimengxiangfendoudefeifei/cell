@@ -48,7 +48,7 @@ public:
 			targetPath[forwardIndex].first);// alfa
 		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) +
 			pow(targetPath[forwardIndex].first, 2)); // distance 
-		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 3.33 / (1 * M_PI);
+		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 3.67 / (1 * M_PI);
 		
 		if (steer > 120) {
 			steer = 120;
@@ -74,14 +74,14 @@ public:
 		if (lastKappa > 0.20) this_kappa = lastKappa * 0.6;
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
-		auto max_v = sqrt( 1.8 / this_kappa);
+		auto max_v = sqrt( 2.2 / this_kappa);
 		std::cout << "longtitude forwardIndex: " << forwardIndex << std::endl;
 		std::cout << "nearKappa : " << nearKappa << "\t farKappa : " << farKappa << "\t lastKappa :" << lastKappa << std::endl;
 		std::cout << "max_v is :" << max_v  << "\tand pEgo->speed is : " << pEgo->speed << std::endl;
 		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v > 8.5 ? 8.5 : max_v, pEgo->speed);
+		return PID_Control(max_v > 8.2 ? 8.2 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {
