@@ -1,4 +1,5 @@
 #include <iostream>
+#include <deque>
 #include "reference_line.h"
 
 
@@ -60,13 +61,13 @@ void referenceLine::sortIndex() {
 	
 	
 	int num = 0, j = 0, flag = -1;
-	while (this->match_point_index_set_cen.size() < this->center_point_xy.size())
+	while (this->match_point_index_set_cen.size() < static_cast<int>(this->center_point_xy.size() / 10))
 	{
 		min_dis = (std::numeric_limits<int>::max)();
 		for (int i = 0; i < this->center_point_xy.size(); ++i) {
 			double dis = pow(this->center_point_xy[i].first - this->center_point_xy[this->match_point_index_set_cen[num]].first, 2) +
 				pow(this->center_point_xy[i].second - this->center_point_xy[this->match_point_index_set_cen[num]].second, 2);
-			if (dis < min_dis && have_seen[i] != 1 && (flag >0 ? 1: center_point_xy[i].first > 0)) {
+			if (dis < min_dis && have_seen[i] != 1 && (flag > 0 ? 1 : center_point_xy[i].first > 0)) {
 				j = i;
 				min_dis = dis;
 			}
@@ -76,11 +77,12 @@ void referenceLine::sortIndex() {
 		have_seen[j] = 1;
 		num++;
 	}
+	
 }
 
 
 void referenceLine::centerPoint() {
-	for (int i = 0; i < this->center_point_xy.size(); ++i) {
+	for (int i = 0; i < this->center_point_xy.size() / 10; ++i) {
 		this->center_point_xy_sort.emplace_back(this->center_point_xy[this->match_point_index_set_cen[i]].first,
 			this->center_point_xy[this->match_point_index_set_cen[i]].second);
 	}
@@ -137,6 +139,55 @@ void referenceLine::average_interpolation(Eigen::MatrixXd &input,
 		
 }
 
+void referenceLine::calc_k_theta() {
+	std::vector<std::pair<double, double>> xy_set = this->get_center_point_xy_final();// 得到中心点
+	// 差分
+	std::deque<std::pair<double, double>> dxy;
+	for (int i = 0; i < xy_set.size() - 1; ++i) {
+		double dx = xy_set[i + 1].first - xy_set[i].first;
+		double dy = xy_set[i + 1].second - xy_set[i].second;
+		dxy.emplace_back(dx, dy);
+	}
+	std::deque<std::pair<double, double>> dxy_pre = dxy;
+	std::deque<std::pair<double, double>> dxy_after = dxy;
+	dxy_pre.emplace_front(xy_set.front());// 加上第一个数
+	dxy_after.emplace_back(xy_set.back());// 加上最后一个数
+	
+	std::deque<std::pair<double, double>> dxy_final;
+	for (int i = 0; i < xy_set.size(); ++i) {
+		double dx = (dxy_pre[i].first + dxy_after[i].first) / 2;
+		double dy = (dxy_pre[i].second + dxy_after[i].second) / 2;
+		dxy_final.emplace_back(dx, dy);
+	}
+	// 计算heading
+	std::deque<double> frenet_theta;
+	std::vector<double> ds_final;
+	for (int i = 0; i < xy_set.size(); ++i) {
+		double theta = atan2(dxy_final[i].second, dxy_final[i].first);
+		frenet_theta.push_back(theta);
+
+		// 计算每一段的弧长
+		double ds = sqrt(pow(dxy_final[i].second, 2) + pow(dxy_final[i].first, 2));
+		ds_final.push_back(ds);
+	}
+	
+	std::deque<double> dtheta;
+	for (int i = 0; i < xy_set.size() - 1; ++i) {
+		// 计算theta_diff
+		double theta_diff = frenet_theta[i + 1] - frenet_theta[i];
+		dtheta.push_back(theta_diff);
+	}
+	std::deque<double> dtheta_pre = dtheta;
+	std::deque<double> dtheta_after = dtheta;
+	dtheta_pre.push_front(frenet_theta.front());
+	dtheta_after.push_back(frenet_theta.back());
+	for (int i = 0; i < xy_set.size(); ++i) {
+		double theta_final = (dtheta_pre[i] + dtheta_after[i]) / 2;
+		this->point.push_back({ xy_set[i].first, xy_set[i].second, sin(theta_final) / ds_final[i], frenet_theta[i] });
+		/*std::cout << "theta: " << frenet_theta[i] << std::endl;
+		std::cout << "kappa: " << sin(theta_final) / ds_final[i] << std::endl;*/
+	}
+}
 
 double referenceLine::calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3)
 {

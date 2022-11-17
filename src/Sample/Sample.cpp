@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "control.h"
+#include "lqr_control.h"
 
 using std::string;
 using std::string_view;
@@ -65,21 +66,33 @@ void ModelOutput(UserData* userData) {
                     Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
                     std::vector<std::pair<double, double>> output;
                     referenceline.average_interpolation(input, output, 0.5, 1.0);
-                    referenceline.set_center_point_xy_final(output);
-                    // after interpolation, resort
-                    referenceline.center_point_xy = referenceline.get_center_point_xy_final();
-                    referenceline.match_point_index_set.clear();
-                    referenceline.sortIndex();
+                    referenceline.set_center_point_xy_final(output);                
                 }
+                // calc kappa theta
+                referenceline.calc_k_theta();// struct RefPoint
             }
             // control class
             EgoControl* pEgoCtrl = nullptr;
             if (pGlobal->ego_control != nullptr) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
                 
-                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_xy_final();
+                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_final();
                 size_t forwardIndex = control::calc_forwardIndex(targetPath, pEgo);
-                double steer = control::calculateSteering(targetPath, pEgo, forwardIndex);
+                //double steer = control::calculateSteering(targetPath, pEgo, forwardIndex);
+                double steer = 0;
+                // 选择是使用lqr还是pure_suit
+                std::shared_ptr<control> control_base;
+                std::vector<RefPoint> targetPathPoint = referenceline.point;
+                int control_mode = 0;// 0:lqr  1:pure_suit
+                switch (control_mode)
+                {
+                case 0:
+                    control_base = std::make_shared<lqr_control>();
+                    steer = control_base->calculateCmd(targetPathPoint, pEgo);
+                    break;
+                default:
+                    break;
+                }
                 cout << "steer: " << steer << endl;
                 double thr = control::calculateThrottleBreak(targetPath, pEgo, forwardIndex);
                 auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
@@ -97,7 +110,7 @@ void ModelOutput(UserData* userData) {
                 pEgoCtrl->steer = steer;
                 pEgoCtrl->mode = 1;
                 pEgoCtrl->gear = 1;*/
-                cout << "times:  " <<  pGlobal->times << endl;
+                //cout << "times:  " <<  pGlobal->times << endl;
                  if (pGlobal->times <4 ) {
                      if (thr > 0) {
                          pEgoCtrl->throttle = thr;

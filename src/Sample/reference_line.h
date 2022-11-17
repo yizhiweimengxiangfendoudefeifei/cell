@@ -2,10 +2,12 @@
 #define __reference_line__
 #pragma once
 
+#include<iostream>
 #include <vector>
 #include <Eigen\Dense>
 #include <SensorBusDef.h>
 #include <BasicsBusDef.h>
+#include <corecrt_math_defines.h>
 
 struct Point3d_s
 {
@@ -25,6 +27,7 @@ struct RefPoint
 	double x;
 	double y;
 	double kappa;
+	double theta;
 };
 
 
@@ -65,12 +68,22 @@ public:
 	void average_interpolation(Eigen::MatrixXd& input, std::vector<std::pair<double, double>>& output, double interval_dis,
 		double distance);
 
+
+	void calc_k_theta();
+
 	std::vector<std::pair<double, double>> get_center_point_xy_sort() {
 		return this->center_point_xy_sort;
 	}
 
 	std::vector<std::pair<double, double>> get_center_point_xy_final() {
 		return this->center_point_xy_final;
+	}
+	std::vector<std::pair<double, double>> get_center_point_final() {
+		std::vector<std::pair<double, double>> center_point;
+		for (auto Point : this->point) {
+			center_point.emplace_back(Point.x, Point.y);
+		}
+		return center_point;
 	}
 	std::vector<std::pair<double, double>> get_yellow_point_xy_final() {
 		return this->yellow_xy;
@@ -102,10 +115,12 @@ public:
 	std::vector<std::pair<double, double>> center_point_xy;
 	std::vector<int> match_point_index_set;// sort index in "calcCenterPoint"
 	std::vector<std::pair<double, double>> yellow_xy;
+	std::vector<RefPoint> point;// 最终输出的点 x,y,kappa,theta
 private:
 	 
 	std::vector<std::pair<double, double>> center_point_xy_sort;// centerpoint after sort
 	std::vector<std::pair<double, double>> center_point_xy_final; // centerpoint after interpolation
+	
 	std::vector<std::pair<double, double>> in_xy;// (x,y)
 	std::vector<std::pair<double, double>> out_xy;
 	std::vector<RefPoint> RefMsg;//
