@@ -1,11 +1,7 @@
 #include "lqr_control.h"
 
-// find nearest point
-// int lqr_control::findTrajref(const std::vector<std::pair<double, double>> &targetPath, PanoSimBasicsBus::Ego *pEgo){
 
-// }
-
-lqr_control::lqr_control()
+lqrControl::lqrControl()
 {
     // 纵向速度
     vx = 0.1;
@@ -13,9 +9,9 @@ lqr_control::lqr_control()
     vy = 0;
 
     //质心侧偏角视为不变
-    cf = -774.73*2;
+    cf = -3103.21;
     // 轮胎侧偏刚度
-    cr = -115494.663;
+    cr = -3103.21;
 
     m = 240.1;
 
@@ -38,29 +34,30 @@ lqr_control::lqr_control()
 }
 
 
-double lqr_control::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
-	this->vx = pEgo->speed * pEgo->yaw;
+double lqrControl::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
+	this->vx = -pLidar->items->OBJ_Ego_Vx;
 	// 变量再分配
 	std::vector<std::pair<double, double>> trj_point_array;
-	for (auto Point : targetPath) {
+	for (auto& Point : targetPath) {
 		trj_point_array.emplace_back(Point.x, Point.y);
 	}
 	std::vector<double> trj_thetas;
-	for (auto Point : targetPath) {
+	for (auto& Point : targetPath) {
 		trj_thetas.push_back(Point.theta);
 	}
 	std::vector<double> trj_kappas;
-	for (auto Point : targetPath) {
+	for (auto& Point : targetPath) {
 		trj_kappas.push_back(Point.kappa);
 	}
-	// 相对坐标，故车辆位置为0
+	// 相对坐标，故车辆位置为(0,0)
 	double currentPositionX = 0;
 	double currentPositionY = 0;
-	double car_yaw = pEgo->yaw;// ???
+	double car_yaw = 0;// 车身坐标系下用不到
 	double out_angle = theta_angle(trj_point_array, trj_thetas, trj_kappas, currentPositionX, currentPositionY, car_yaw);
+    return out_angle;
 }
 
-double lqr_control::theta_angle(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
+double lqrControl::theta_angle(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
 	std::vector<double>& trj_kappas, double currentPositionX, double currentPositionY, double car_yaw)
 {
 
@@ -74,11 +71,21 @@ double lqr_control::theta_angle(const std::vector<std::pair<double, double>>& tr
 }
 
 
-std::array<double, 5> lqr_control::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
+std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
     std::vector<double>& trj_kappas, double current_post_x, double current_post_y, double car_yaw)
 {
+    current_post_x = current_post_x + this->vx * 0.01;// 预测模块
     std::array<double, 5> err_k;
-    int index = 0;// 最近的点
+    int index = 0;// 最近的点大部分情况都是0，有的时候是1
+    //double min_dis = (std::numeric_limits<int>::max)();
+    //for (size_t i = 0; i < trj_point_array.size(); ++i) {
+    //    double dis = pow(trj_point_array[i].first, 2) + pow(trj_point_array[i].second, 2);
+    //    if (dis < min_dis) {
+    //        // 确保在自车前方
+    //        min_dis = dis;
+    //        index = i;
+    //    }
+    //}
     // 找到index后，开始求解投影点
     // Eigen::Vector2f tor;
     Eigen::Matrix<double, 2, 1> tor;
@@ -91,7 +98,7 @@ std::array<double, 5> lqr_control::cal_err_k(const std::vector<std::pair<double,
     Eigen::Matrix<double, 2, 1> d_err;
     d_err << current_post_x - trj_point_array[index].first, current_post_y - trj_point_array[index].second;
 
-    double phi = car_yaw;
+    double phi = 0;
 
     // nor.transpose()对nor转置
     double ed = nor.transpose() * d_err;
@@ -129,7 +136,7 @@ std::array<double, 5> lqr_control::cal_err_k(const std::vector<std::pair<double,
 }
 
 
-Eigen::Matrix<double, 1, 4> lqr_control::cal_k(std::array<double, 5> err_k)
+Eigen::Matrix<double, 1, 4> lqrControl::cal_k(std::array<double, 5> err_k)
 {
     Eigen::Matrix4d A;
     A << 0, 1, 0, 0,
@@ -141,17 +148,21 @@ Eigen::Matrix<double, 1, 4> lqr_control::cal_k(std::array<double, 5> err_k)
     Eigen::Matrix<double, 4, 1> B;
     B << 0, -cf / m, 0, -a * cf / Iz;
 
-    // Eigen::Matrix4f Q;
     // // 设置成单位矩阵
     Eigen::Matrix4d Q;
-    // Q.setIdentity(4, 4);
-    Q(0, 0) = 60;
+     Q.setIdentity(4, 4);
+    /*Q(0, 0) = 60;
     Q(1, 1) = 1;
+    Q(2, 2) = 1;
+    Q(3, 3) = 1;*/
+    Q(0, 0) = 25;// 值越大方向盘摆的越剧烈
+    Q(1, 1) = 3;
     Q(2, 2) = 1;
     Q(3, 3) = 1;
 
     Eigen::Matrix<double, 1, 1> R;
-    R(0, 0) = 35.0;
+    /*R(0, 0) = 35.0;*/
+    R(0, 0) = 50;
     // MatrixXd矩阵只能用(),VectorXd不仅能用()还能用[]
     Eigen::Matrix<double, 1, 4> k = cal_dlqr(A, B, Q, R);
 
@@ -159,7 +170,7 @@ Eigen::Matrix<double, 1, 4> lqr_control::cal_k(std::array<double, 5> err_k)
 }
 
 
-Eigen::Matrix<double, 1, 4> lqr_control::cal_dlqr(Eigen::Matrix4d A, Eigen::Matrix<double, 4, 1> B,
+Eigen::Matrix<double, 1, 4> lqrControl::cal_dlqr(Eigen::Matrix4d A, Eigen::Matrix<double, 4, 1> B,
     Eigen::Matrix4d Q, Eigen::Matrix<double, 1, 1> R)
 {
     // 设置最大循环迭代次数
@@ -203,7 +214,7 @@ Eigen::Matrix<double, 1, 4> lqr_control::cal_dlqr(Eigen::Matrix4d A, Eigen::Matr
     return k;
 }
 
-double lqr_control::cal_forword_angle(Eigen::Matrix<double, 1, 4> k,
+double lqrControl::cal_forword_angle(Eigen::Matrix<double, 1, 4> k,
     std::array<double, 5> err_k)
 {
     double k3 = k[2];
@@ -225,12 +236,12 @@ double lqr_control::cal_forword_angle(Eigen::Matrix<double, 1, 4> k,
     return forword_angle;
 }
 
-double lqr_control::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle,
+double lqrControl::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle,
     std::array<double, 5> err_k)
 {
     Eigen::Matrix<double, 4, 1> err;
     err << err_k[0], err_k[1], err_k[2], err_k[3];
-    double angle = -(-k * err + forword_angle) * 3.67;
+    double angle = (-k * err + forword_angle) * 180 * 3.67 / M_PI;
     
     if (angle > 120) {
         angle = 120;

@@ -5,14 +5,17 @@
 
 void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
 	// ´æ´¢ÄÚÍâÈ¦×¶Í°×ø±ê
+	std::cout << "--------------------" << std::endl;
 	for (int i = 0; i < pLidar->header.width; ++i) {
 		if (pLidar->items[i].shape == 2) {
 			this->out_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
+			//std::cout << out_xy[outter].first << "  " << out_xy[outter].second << std::endl;
 			this->outter++;
 				
 		}
 		else if(pLidar->items[i].shape == 11){
 			this->in_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
+			//std::cout << in_xy[inner].first << "  " << in_xy[inner].second << std::endl;
 			this->inner++;
 		}
 		else {
@@ -38,7 +41,7 @@ void referenceLine::calcCenterPoint(){
 
 	int num_selected = this->in_xy.size() < this->out_xy.size() ? this->in_xy.size() : this->out_xy.size();
 	for (int i = 0; i < num_selected; ++i) {
-		center_point_xy.emplace_back((this->out_xy[i].first + this->in_xy[this->match_point_index_set[i]].first) / 2,
+		this->center_point_xy.emplace_back((this->out_xy[i].first + this->in_xy[this->match_point_index_set[i]].first) / 2,
 									 (this->out_xy[i].second + this->in_xy[this->match_point_index_set[i]].second) / 2);
 	}
 }

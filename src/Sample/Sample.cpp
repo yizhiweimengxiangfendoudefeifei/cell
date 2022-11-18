@@ -7,6 +7,7 @@
 
 #include "control.h"
 #include "lqr_control.h"
+#include "pure_puresuit_control.h"
 
 using std::string;
 using std::string_view;
@@ -21,11 +22,13 @@ using PanoSimBasicsBus::EGO_CONTROL_FORMAT;
 using PanoSimBasicsBus::EgoControl;
 using PanoSimBasicsBus::EGO_FORMAT;
 using PanoSimBasicsBus::Ego;
+using PanoSimBasicsBus::EGO_EXTRA_FORMAT;
+using PanoSimBasicsBus::EgoExtra;
 
 
 struct GlobalData {
     BusAccessor* lidar;
-    BusAccessor* ego_control, *ego;
+    BusAccessor* ego_control, *ego, *ego_extra;
     int times = 0;
     bool flg = false;
 };
@@ -41,6 +44,7 @@ void ModelStart(UserData* userData) {
     pGlobal->lidar = new BusAccessor(userData->busId, "Lidar_ObjList_G.0", LIDAR_OBJLIST_G_FORMAT);
     pGlobal->ego_control = new BusAccessor(userData->busId, "ego_control", EGO_CONTROL_FORMAT);
     pGlobal->ego = new BusAccessor(userData->busId, "ego", EGO_FORMAT);
+    pGlobal->ego_extra = new BusAccessor(userData->busId, "ego_extral", EGO_EXTRA_FORMAT);
     userData->state = pGlobal;
 }
 
@@ -52,9 +56,11 @@ void ModelOutput(UserData* userData) {
             
             Lidar_ObjList_G* pLidar = nullptr;
             Ego* pEgo = nullptr;
+            EgoExtra* pEgoExtra = nullptr;
             if (pGlobal->lidar != nullptr && pGlobal->ego != nullptr) {
                 pLidar = static_cast<Lidar_ObjList_G*>(pGlobal->lidar->GetHeader());
                 pEgo = static_cast<Ego*>(pGlobal->ego->GetHeader());
+                pEgoExtra = static_cast<EgoExtra*>(pGlobal->ego->GetHeader());
                 // reference_line calc
                 referenceline.shape(pLidar);
                 referenceline.calcCenterPoint();
@@ -66,7 +72,11 @@ void ModelOutput(UserData* userData) {
                     Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
                     std::vector<std::pair<double, double>> output;
                     referenceline.average_interpolation(input, output, 0.5, 1.0);
-                    referenceline.set_center_point_xy_final(output);                
+                    referenceline.set_center_point_xy_final(output); 
+                    /*cout << "++++++++++++" << endl;
+                    for (auto line : output) {
+                        cout << line.first << "   " << line.second << endl;
+                    }*/
                 }
                 // calc kappa theta
                 referenceline.calc_k_theta();// struct RefPoint
@@ -80,37 +90,47 @@ void ModelOutput(UserData* userData) {
                 size_t forwardIndex = control::calc_forwardIndex(targetPath, pEgo);
                 //double steer = control::calculateSteering(targetPath, pEgo, forwardIndex);
                 double steer = 0;
-                // 选择是使用lqr还是pure_suit
+                // control mode 0:lqr  1:pure_pursuit
                 std::shared_ptr<control> control_base;
                 std::vector<RefPoint> targetPathPoint = referenceline.point;
-                int control_mode = 0;// 0:lqr  1:pure_suit
+                int control_mode = 0;
                 switch (control_mode)
                 {
                 case 0:
-                    control_base = std::make_shared<lqr_control>();
-                    steer = control_base->calculateCmd(targetPathPoint, pEgo);
+                    control_base = std::make_shared<lqrControl>();
+                    steer = control_base->calculateCmd(targetPathPoint, pLidar);
+                    break;
+                case 1:
+                    control_base = std::make_shared<purePursuit>();
+                    steer = control_base->calculateCmd(targetPathPoint, pLidar);
                     break;
                 default:
                     break;
                 }
-                cout << "steer: " << steer << endl;
-                double thr = control::calculateThrottleBreak(targetPath, pEgo, forwardIndex);
-                auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
-
-                pEgoCtrl->time = userData->time;
-                pEgoCtrl->valid = 1;
-                /*if (thr > 0) {
-                    pEgoCtrl->throttle = thr;
-                    pEgoCtrl->brake = 0;
+                //cout << "sample steer: " << steer << endl;
+                //double thr = control::calculateThrottleBreak(targetPath, pEgo, forwardIndex);
+                //auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
+                if (pEgo->speed * 3.6 > 10) {
+                    pEgoCtrl->time = userData->time;
+                    pEgoCtrl->valid = 1;
+                    pEgoCtrl->throttle = 0;
+                    pEgoCtrl->brake = 1;
+                    pEgoCtrl->steer = steer;
+                    pEgoCtrl->mode = 1;
+                    pEgoCtrl->gear = 1;
                 }
                 else {
-                    pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = -thr;
+                    pEgoCtrl->time = userData->time;
+                    pEgoCtrl->valid = 1;
+                    pEgoCtrl->throttle = 1;
+                    pEgoCtrl->brake = 0;
+                    pEgoCtrl->steer = steer;
+                    pEgoCtrl->mode = 1;
+                    pEgoCtrl->gear = 1;
                 }
-                pEgoCtrl->steer = steer;
-                pEgoCtrl->mode = 1;
-                pEgoCtrl->gear = 1;*/
-                //cout << "times:  " <<  pGlobal->times << endl;
+
+                /*pEgoCtrl->time = userData->time;
+                pEgoCtrl->valid = 1;
                  if (pGlobal->times <4 ) {
                      if (thr > 0) {
                          pEgoCtrl->throttle = thr;
@@ -134,7 +154,7 @@ void ModelOutput(UserData* userData) {
                  else {
                      pEgoCtrl->throttle = 0;
                      pEgoCtrl->brake = 1;
-                 }
+                 }*/
             }
 
         }

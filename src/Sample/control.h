@@ -15,10 +15,8 @@ public:
 	control()=default;
 	virtual ~control()=default;
 
-	// virtual function, base, lqr_control and pure_suit is inherited
-	virtual double calculateCmd(const std::vector<RefPoint> &targetPath, PanoSimBasicsBus::Ego *pEgo) = 0;
-
-	// virtual int findTrajref(const std::vector<std::pair<double, double>> &targetPath, PanoSimBasicsBus::Ego *pEgo) = 0;
+	// virtual function, base, lqrControl and pure_suit is inherited
+	virtual double calculateCmd(const std::vector<RefPoint> &targetPath, PanoSimSensorBus::Lidar_ObjList_G * pLidar) = 0;
 
 public:
 	// calc forwardindex
@@ -47,24 +45,6 @@ public:
 		return 0;
 	}
 
-	static double calculateSteering(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo, size_t forwardIndex) {
-		
-		// std::cout << "forwardIndex: " << forwardIndex << std::endl;
-		double deltaAlfa = atan2(targetPath[forwardIndex].second,
-			targetPath[forwardIndex].first);// alfa
-		double ld = sqrt(pow(targetPath[forwardIndex].second, 2) +
-			pow(targetPath[forwardIndex].first, 2)); // distance 
-		double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 3.67 / (1 * M_PI);
-		
-		if (steer > 120) {
-			steer = 120;
-		}
-		else if (steer < -120) {
-			steer = -120;
-		}
-		return steer;
-	}
-
 	static double calculateThrottleBreak(const std::vector<std::pair<double, double>>& targetPath, PanoSimBasicsBus::Ego* pEgo, size_t forwardIndex) {
 
 		auto nearKappa = calculateKappa(targetPath, 0);
@@ -83,11 +63,11 @@ public:
 		auto max_v = sqrt( 2.2 / this_kappa);
 		// std::cout << "longtitude forwardIndex: " << forwardIndex << std::endl;
 		// std::cout << "nearKappa : " << nearKappa << "\t farKappa : " << farKappa << "\t lastKappa :" << lastKappa << std::endl;
-		// std::cout << "max_v is :" << max_v  << "\tand pEgo->speed is : " << pEgo->speed << std::endl;
+		std::cout << "max_v is :" << max_v  << "\tand pEgo->speed is : " << pEgo->speed << std::endl;
 		// std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		// std::cout << "this_kappa is :" << this_kappa << std::endl;
 		// std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v > 0 ? 2.0 : max_v, pEgo->speed);
+		return PID_Control(max_v > 0 ? 1 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {

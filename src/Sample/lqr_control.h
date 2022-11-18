@@ -5,13 +5,13 @@
 
 #include "control.h"
 
-class lqr_control : public control
+class lqrControl : public control
 {
 public:
-    lqr_control();
-    ~lqr_control() = default;
+    lqrControl();
+    ~lqrControl() = default;
 
-    double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo) override;
+    double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar) override;
 
     // ¼ÆËãÇ°ÂÖ×ª½Ç
     double theta_angle(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
