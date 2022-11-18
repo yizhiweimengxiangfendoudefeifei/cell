@@ -48,7 +48,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\include\panoSimApi;..\..\include\eigen</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include\panoSimApi;..\..\eigen</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
@@ -64,11 +64,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lqr_control.cpp" />
+    <ClCompile Include="pure_puresuit_control.cpp" />
     <ClCompile Include="reference_line.cpp" />
     <ClCompile Include="Sample.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="control.h" />
+    <ClInclude Include="lqr_control.h" />
+    <ClInclude Include="pure_puresuit_control.h" />
     <ClInclude Include="reference_line.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
