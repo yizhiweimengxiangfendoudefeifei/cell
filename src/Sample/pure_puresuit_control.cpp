@@ -24,11 +24,11 @@ double purePursuit::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSi
 		pow(targetPath[forwardIndex].x, 2)); // distance 
 	double steer = atan2(2. * (1.55) * sin(deltaAlfa), ld) * 180 * 3.67 / (1 * M_PI);
 
-	if (steer > 120) {
-		steer = 120;
+	if (steer > 135) {
+		steer = 135;
 	}
-	else if (steer < -120) {
-		steer = -120;
+	else if (steer < -135) {
+		steer = -135;
 	}
 	return steer;
 }

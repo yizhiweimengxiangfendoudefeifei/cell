@@ -71,7 +71,7 @@ void ModelOutput(UserData* userData) {
                 if (referenceline.get_center_point_xy_sort().size() > 0) {
                     Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
                     std::vector<std::pair<double, double>> output;
-                    referenceline.average_interpolation(input, output, 0.5, 1.0);
+                    referenceline.average_interpolation(input, output, 0.2, 0.6);
                     referenceline.set_center_point_xy_final(output); 
                     /*cout << "++++++++++++" << endl;
                     for (auto line : output) {
@@ -88,7 +88,6 @@ void ModelOutput(UserData* userData) {
                 
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_final();
                 size_t forwardIndex = control::calc_forwardIndex(targetPath, pEgo);
-                //double steer = control::calculateSteering(targetPath, pEgo, forwardIndex);
                 double steer = 0;
                 // control mode 0:lqr  1:pure_pursuit
                 std::shared_ptr<control> control_base;
@@ -107,7 +106,7 @@ void ModelOutput(UserData* userData) {
                 default:
                     break;
                 }
-                //cout << "sample steer: " << steer << endl;
+                cout << "sample steer: " << steer << endl;
                 //double thr = control::calculateThrottleBreak(targetPath, pEgo, forwardIndex);
                 //auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
                 if (pEgo->speed * 3.6 > 10) {

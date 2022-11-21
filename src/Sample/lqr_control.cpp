@@ -9,9 +9,9 @@ lqrControl::lqrControl()
     vy = 0;
 
     //质心侧偏角视为不变
-    cf = -3103.21;
+    cf = -40307.89;
     // 轮胎侧偏刚度
-    cr = -3103.21;
+    cr = -40307.89;
 
     m = 240.1;
 
@@ -66,7 +66,6 @@ double lqrControl::theta_angle(const std::vector<std::pair<double, double>>& trj
 
 	double forword_angle = cal_forword_angle(k, err_k);
 	double angle = cal_angle(k, forword_angle, err_k);
-	// printf("angle,forword_angle=%.3f,%.3f\n", angle, forword_angle);
 	return angle;
 }
 
@@ -74,20 +73,19 @@ double lqrControl::theta_angle(const std::vector<std::pair<double, double>>& trj
 std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
     std::vector<double>& trj_kappas, double current_post_x, double current_post_y, double car_yaw)
 {
-    current_post_x = current_post_x + this->vx * 0.01;// 预测模块
+    current_post_x = current_post_x + this->vx * 0.3;// 预测模块
     std::array<double, 5> err_k;
     int index = 0;// 最近的点大部分情况都是0，有的时候是1
     //double min_dis = (std::numeric_limits<int>::max)();
     //for (size_t i = 0; i < trj_point_array.size(); ++i) {
     //    double dis = pow(trj_point_array[i].first, 2) + pow(trj_point_array[i].second, 2);
     //    if (dis < min_dis) {
-    //        // 确保在自车前方
+    //        
     //        min_dis = dis;
     //        index = i;
     //    }
     //}
     // 找到index后，开始求解投影点
-    // Eigen::Vector2f tor;
     Eigen::Matrix<double, 2, 1> tor;
     tor << cos(trj_thetas[index]), sin(trj_thetas[index]);
     // Eigen::Vector2f nor;
@@ -156,13 +154,13 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_k(std::array<double, 5> err_k)
     Q(2, 2) = 1;
     Q(3, 3) = 1;*/
     Q(0, 0) = 25;// 值越大方向盘摆的越剧烈
-    Q(1, 1) = 3;
+    Q(1, 1) = 1;
     Q(2, 2) = 1;
     Q(3, 3) = 1;
 
     Eigen::Matrix<double, 1, 1> R;
-    /*R(0, 0) = 35.0;*/
-    R(0, 0) = 50;
+    /*R(0, 0) = 35.0;  50*/
+    R(0, 0) = 100.0;
     // MatrixXd矩阵只能用(),VectorXd不仅能用()还能用[]
     Eigen::Matrix<double, 1, 4> k = cal_dlqr(A, B, Q, R);
 
@@ -178,7 +176,7 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_dlqr(Eigen::Matrix4d A, Eigen::Matri
     // 设置目标极小值
     double minValue = 10e-10;
     Eigen::Matrix4d p_old;
-    p_old = Q;
+    p_old = Q;// p取初值
 
     // 离散化状态方程
     double ts = 0.001;
@@ -224,15 +222,8 @@ double lqrControl::cal_forword_angle(Eigen::Matrix<double, 1, 4> k,
     //投影点的曲率final_path.k[index]
     double point_curvature = err_k[4];
     double forword_angle =
-        wheel_base * point_curvature + kv * vx * vx * point_curvature -
-        k3 * (b * point_curvature + a * m * vx * vx * point_curvature / cr / (a + b));
-    // double forword_angle =
-    //     wheel_base * point_curvature + kv * vx * vx * point_curvature -
-    //     k3 * (b * point_curvature - a * m * vx * vx * point_curvature / cr / b);
-    // double forword_angle =
-    //     projection_point_curvature *
-    //     (a + b - b * k3 -
-    //      (m * std::pow(vx, 2) / (a + b)) * (b / cf + a * k3 / cr - a / cr));
+        0.3 * (wheel_base * point_curvature + kv * vx * vx * point_curvature -
+        k3 * (b * point_curvature + a * m * vx * vx * point_curvature / cr / (a + b)));
     return forword_angle;
 }
 
@@ -243,11 +234,11 @@ double lqrControl::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle
     err << err_k[0], err_k[1], err_k[2], err_k[3];
     double angle = (-k * err + forword_angle) * 180 * 3.67 / M_PI;
     
-    if (angle > 120) {
-        angle = 120;
+    if (angle > 135) {
+        angle = 135;
     }
-    else if (angle < -120) {
-        angle = -120;
+    else if (angle < -135) {
+        angle = -135;
     }
     return angle;
 }

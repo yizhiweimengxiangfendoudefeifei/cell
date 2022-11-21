@@ -5,7 +5,7 @@
 
 void referenceLine::shape(PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
 	// ´æ´¢ÄÚÍâÈ¦×¶Í°×ø±ê
-	std::cout << "--------------------" << std::endl;
+	//std::cout << "---------" << std::endl;
 	for (int i = 0; i < pLidar->header.width; ++i) {
 		if (pLidar->items[i].shape == 2) {
 			this->out_xy.emplace_back(pLidar->items[i].OBJ_S_X, pLidar->items[i].OBJ_S_Y);
@@ -187,8 +187,10 @@ void referenceLine::calc_k_theta() {
 	for (int i = 0; i < xy_set.size(); ++i) {
 		double theta_final = (dtheta_pre[i] + dtheta_after[i]) / 2;
 		this->point.push_back({ xy_set[i].first, xy_set[i].second, sin(theta_final) / ds_final[i], frenet_theta[i] });
-		/*std::cout << "theta: " << frenet_theta[i] << std::endl;
-		std::cout << "kappa: " << sin(theta_final) / ds_final[i] << std::endl;*/
+		//std::cout << "theta: " << frenet_theta[i] << std::endl;
+		/*if (i == 0) {
+			std::cout << "kappa: " << sin(theta_final) / ds_final[i] << std::endl;
+		}*/
 	}
 }
 
