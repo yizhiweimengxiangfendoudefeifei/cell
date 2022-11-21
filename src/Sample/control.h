@@ -50,14 +50,14 @@ public:
 		}
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
-		auto max_v = sqrt( 2.2 / this_kappa);
+		auto max_v = sqrt( 1.8 / this_kappa);
 		std::cout << "longtitude forwardIndex: " << forwardIndex << std::endl;
 		// std::cout << "nearKappa : " << nearKappa << "\t farKappa : " << farKappa << "\t lastKappa :" << lastKappa << std::endl;
 		std::cout << "max_v is :" << max_v  << "\tand pEgo->speed is : " << pEgo->speed << std::endl;
 		// std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		std::cout << "-----------------" << std::endl;
-		return PID_Control(max_v > 0 ? 1 : max_v, pEgo->speed);
+		return PID_Control(max_v > 7 ? 7 : max_v, pEgo->speed);
 	}
 
 	static double PID_Control(double value_target, double value_now) {
@@ -66,16 +66,17 @@ public:
 		double ki = 0.00;
 		double kd = 0.00;
 
-		double value_p = 1 / (1 + exp(- (value_target - value_now)));
+		double value_p = value_target - value_now;
 
-		value_i += 1 / (1 + exp(-(value_target - value_now))) * dt;
+		value_i += (value_target - value_now) * dt;
 		double value_d = (value_now - value_last) / dt;
 		
 		double control_value = kp * value_p + ki * value_i + kd * value_d;
+		control_value = (1 / (1 + exp(-(control_value))) - 0.55) * 2;
 		// std::cout << "control_value is : " << control_value << std::endl;
 		if (control_value > 1) control_value = 1;
 		if (control_value < -1) control_value = -1;
-		// std::cout << "control_value after limit is : " << control_value << std::endl;
+		std::cout << "control_value after limit is : " << control_value << std::endl;
 		value_last = value_now;
 		return control_value;
 
