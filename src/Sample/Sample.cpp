@@ -49,6 +49,8 @@ void ModelStart(UserData* userData) {
 }
 
 void ModelOutput(UserData* userData) {
+    std::cout << "+++++++++++++++++++++" << std::endl;
+
     if (userData != nullptr) {
         auto pGlobal = static_cast<GlobalData*>(userData->state);
         if (pGlobal != nullptr) {
@@ -140,6 +142,8 @@ void ModelOutput(UserData* userData) {
 
         }
     }
+    std::cout << "-----------------" << std::endl;
+
 }
 
 void ModelTerminate(UserData* userData)

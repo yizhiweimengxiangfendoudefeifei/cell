@@ -45,18 +45,20 @@ public:
 	static double calculateThrottleBreak(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo, size_t forwardIndex) {
 
 		auto this_kappa = 0.01;
-		for (int i = 0; i < forwardIndex; i++) {
+		std::cout << "all kappa: ";
+		for (int i = 0; i <= forwardIndex; i++) {
+			std::cout << "\t" << this_kappa;
 			this_kappa = this_kappa > abs(targetPath[i].kappa) ? this_kappa : abs(targetPath[i].kappa);
 		}
+		std::cout << std::endl;
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
-		auto max_v = sqrt( 1.8 / this_kappa);
+		auto max_v = sqrt( 2.2 / this_kappa);
 		std::cout << "longtitude forwardIndex: " << forwardIndex << std::endl;
 		// std::cout << "nearKappa : " << nearKappa << "\t farKappa : " << farKappa << "\t lastKappa :" << lastKappa << std::endl;
 		std::cout << "max_v is :" << max_v  << "\tand pEgo->speed is : " << pEgo->speed << std::endl;
-		// std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
+		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
-		std::cout << "-----------------" << std::endl;
 		return PID_Control(max_v > 7 ? 7 : max_v, pEgo->speed);
 	}
 
