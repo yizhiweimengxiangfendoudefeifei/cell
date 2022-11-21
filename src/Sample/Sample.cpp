@@ -87,11 +87,11 @@ void ModelOutput(UserData* userData) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
                 
                 std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_final();
-                size_t forwardIndex = control::calc_forwardIndex(targetPath, pEgo);
                 double steer = 0;
                 // control mode 0:lqr  1:pure_pursuit
                 std::shared_ptr<control> control_base;
                 std::vector<RefPoint> targetPathPoint = referenceline.point;
+                size_t forwardIndex = control::calc_forwardIndex(targetPathPoint, pEgo);
                 int control_mode = 0;
                 switch (control_mode)
                 {
@@ -107,28 +107,10 @@ void ModelOutput(UserData* userData) {
                     break;
                 }
                 cout << "sample steer: " << steer << endl;
-                //double thr = control::calculateThrottleBreak(targetPath, pEgo, forwardIndex);
-                //auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
-                if (pEgo->speed * 3.6 > 10) {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 0;
-                    pEgoCtrl->brake = 1;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
-                }
-                else {
-                    pEgoCtrl->time = userData->time;
-                    pEgoCtrl->valid = 1;
-                    pEgoCtrl->throttle = 1;
-                    pEgoCtrl->brake = 0;
-                    pEgoCtrl->steer = steer;
-                    pEgoCtrl->mode = 1;
-                    pEgoCtrl->gear = 1;
-                }
+                double thr = control::calculateThrottleBreak(targetPathPoint, pEgo, forwardIndex);
+                auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
 
-                /*pEgoCtrl->time = userData->time;
+                pEgoCtrl->time = userData->time;
                 pEgoCtrl->valid = 1;
                  if (pGlobal->times <4 ) {
                      if (thr > 0) {
@@ -153,7 +135,7 @@ void ModelOutput(UserData* userData) {
                  else {
                      pEgoCtrl->throttle = 0;
                      pEgoCtrl->brake = 1;
-                 }*/
+                 }
             }
 
         }
