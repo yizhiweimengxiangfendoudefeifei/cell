@@ -73,7 +73,7 @@ double lqrControl::theta_angle(const std::vector<std::pair<double, double>>& trj
 std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
     std::vector<double>& trj_kappas, double current_post_x, double current_post_y, double car_yaw)
 {
-    current_post_x = current_post_x + this->vx * 0.3;// 预测模块
+    //current_post_x = current_post_x + this->vx * 0.03;// 预测模块
     std::array<double, 5> err_k;
     int index = 0;
     double min_dis = (std::numeric_limits<int>::max)();
@@ -85,6 +85,7 @@ std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, 
             index = i;
         }
     }
+    std::cout << index << "_xy: " << trj_point_array[index].first << "  " << trj_point_array[index].second << std::endl;
     // 找到index后，开始求解投影点
     Eigen::Matrix<double, 2, 1> tor;
     tor << cos(trj_thetas[index]), sin(trj_thetas[index]);
@@ -95,14 +96,15 @@ std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, 
     // Eigen::Vector2f d_err;
     Eigen::Matrix<double, 2, 1> d_err;
     d_err << current_post_x - trj_point_array[index].first, current_post_y - trj_point_array[index].second;
-
     double phi = 0;
 
     // nor.transpose()对nor转置
     double ed = nor.transpose() * d_err;
-    // double ed = -vx*sin();
+    
+    std::cout << "横向： " << ed << std::endl;
 
     double es = tor.transpose() * d_err;
+    std::cout << "纵向： " << es << std::endl;
 
     // 投影点的threat角度
     double projection_point_threat = trj_thetas[index] + trj_kappas[index] * es;
@@ -234,11 +236,11 @@ double lqrControl::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle
     err << err_k[0], err_k[1], err_k[2], err_k[3];
     double angle = (-k * err + forword_angle) * 180 * 3.67 / M_PI;
     
-    if (angle > 135) {
-        angle = 135;
+    if (angle > 150) {
+        angle = 150;
     }
-    else if (angle < -135) {
-        angle = -135;
+    else if (angle < -150) {
+        angle = -150;
     }
     return angle;
 }
