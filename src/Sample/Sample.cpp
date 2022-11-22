@@ -49,7 +49,7 @@ void ModelStart(UserData* userData) {
 }
 
 void ModelOutput(UserData* userData) {
-    std::cout << "+++++++++++++++++++++" << std::endl;
+    
 
     if (userData != nullptr) {
         auto pGlobal = static_cast<GlobalData*>(userData->state);
@@ -74,9 +74,9 @@ void ModelOutput(UserData* userData) {
                     Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
                     std::vector<std::pair<double, double>> output;
                     referenceline.average_interpolation(input, output, 0.2, 0.6);
-                    referenceline.set_center_point_xy_final(output); 
-                    /*cout << "++++++++++++" << endl;
-                    for (auto line : output) {
+                    referenceline.set_center_point_xy_final(output);
+                    std::cout << "+++++++++++++++++++++" << std::endl;
+                    /*for (auto line : output) {
                         cout << line.first << "   " << line.second << endl;
                     }*/
                 }
@@ -87,13 +87,12 @@ void ModelOutput(UserData* userData) {
             EgoControl* pEgoCtrl = nullptr;
             if (pGlobal->ego_control != nullptr) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
-                
-                std::vector<std::pair<double, double>> targetPath = referenceline.get_center_point_final();
+
                 double steer = 0;
                 // control mode 0:lqr  1:pure_pursuit
                 std::shared_ptr<control> control_base;
                 std::vector<RefPoint> targetPathPoint = referenceline.point;
-                size_t forwardIndex = control::calc_forwardIndex(targetPathPoint, pEgo);
+                int forwardIndex = control::calc_forwardIndex(targetPathPoint, pEgo);
                 int control_mode = 0;
                 switch (control_mode)
                 {
@@ -142,7 +141,6 @@ void ModelOutput(UserData* userData) {
 
         }
     }
-    std::cout << "-----------------" << std::endl;
 
 }
 

@@ -21,12 +21,20 @@ public:
 
 public:
 	// calc forwardindex
-	static size_t calc_forwardIndex(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
+	static int calc_forwardIndex(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo) {
 		// Nearest point index after sort is 0
-		size_t index = 0;
+		int index = 0;
+		double min_dis = (std::numeric_limits<int>::max)();
+		for (int i = 0; i < targetPath.size(); ++i) {
+			double dis = pow(targetPath[i].x, 2) + pow(targetPath[i].y, 2);
+			if (dis < min_dis) {
 
-		size_t forwardIndex = 0;
-		double minProgDist = 1.5;
+				min_dis = dis;
+				index = i;
+			}
+		}
+		int forwardIndex = 0;
+		double minProgDist = 1.0;
 		double progTime = 0.5;
 		double mainVehicleSpeed = pEgo->speed;
 		double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
@@ -36,28 +44,29 @@ public:
 			double distance = sqrtf((double)pow(targetPath[index].x, 2) +
 				pow((double)targetPath[index].y, 2));
 			if (distance >= progDist) {
+				//std::cout << "dis: " << distance << "  progdis: " << progDist << std::endl;
 				return forwardIndex;
 			}
 		}
 		return 0;
 	}
 
-	static double calculateThrottleBreak(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo, size_t forwardIndex) {
+	static double calculateThrottleBreak(const std::vector<RefPoint>& targetPath, PanoSimBasicsBus::Ego* pEgo, int forwardIndex) {
 
 		auto this_kappa = 0.01;
 		std::cout << "all kappa: ";
 		for (int i = 0; i <= forwardIndex; i++) {
-			std::cout << "\t" << this_kappa;
 			this_kappa = this_kappa > abs(targetPath[i].kappa) ? this_kappa : abs(targetPath[i].kappa);
+			std::cout << "\t" << this_kappa;
 		}
 		std::cout << std::endl;
 		this_kappa = this_kappa < 0.012 ? 0.012 : this_kappa;
 
-		auto max_v = sqrt( 2.2 / this_kappa);
+		auto max_v = sqrt( 2.0 / this_kappa);
+		std::cout << "this_kappa: " << this_kappa << std::endl;
 		std::cout << "longtitude forwardIndex: " << forwardIndex << std::endl;
 		// std::cout << "nearKappa : " << nearKappa << "\t farKappa : " << farKappa << "\t lastKappa :" << lastKappa << std::endl;
 		std::cout << "max_v is :" << max_v  << "\tand pEgo->speed is : " << pEgo->speed << std::endl;
-		std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 		std::cout << "this_kappa is :" << this_kappa << std::endl;
 		return PID_Control(max_v > 7 ? 7 : max_v, pEgo->speed);
 	}
@@ -75,20 +84,14 @@ public:
 		
 		double control_value = kp * value_p + ki * value_i + kd * value_d;
 		control_value = (1 / (1 + exp(-(control_value))) - 0.55) * 2;
-		// std::cout << "control_value is : " << control_value << std::endl;
+		//std::cout << "control_value is : " << control_value << std::endl;
 		if (control_value > 1) control_value = 1;
 		if (control_value < -1) control_value = -1;
-		std::cout << "control_value after limit is : " << control_value << std::endl;
+		//std::cout << "control_value after limit is : " << control_value << std::endl;
 		value_last = value_now;
 		return control_value;
 
 	}
-
-public:
-	/*static size_t point_index;
-	static double value_i;
-	static double value_last;*/
-
 };
 
 

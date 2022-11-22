@@ -75,16 +75,16 @@ std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, 
 {
     current_post_x = current_post_x + this->vx * 0.3;// 预测模块
     std::array<double, 5> err_k;
-    int index = 0;// 最近的点大部分情况都是0，有的时候是1
-    //double min_dis = (std::numeric_limits<int>::max)();
-    //for (size_t i = 0; i < trj_point_array.size(); ++i) {
-    //    double dis = pow(trj_point_array[i].first, 2) + pow(trj_point_array[i].second, 2);
-    //    if (dis < min_dis) {
-    //        
-    //        min_dis = dis;
-    //        index = i;
-    //    }
-    //}
+    int index = 0;
+    double min_dis = (std::numeric_limits<int>::max)();
+    for (int i = 0; i < trj_point_array.size(); ++i) {
+        double dis = pow(trj_point_array[i].first, 2) + pow(trj_point_array[i].second, 2);
+        if (dis < min_dis) {
+            
+            min_dis = dis;
+            index = i;
+        }
+    }
     // 找到index后，开始求解投影点
     Eigen::Matrix<double, 2, 1> tor;
     tor << cos(trj_thetas[index]), sin(trj_thetas[index]);
@@ -154,13 +154,13 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_k(std::array<double, 5> err_k)
     Q(2, 2) = 1;
     Q(3, 3) = 1;*/
     Q(0, 0) = 25;// 值越大方向盘摆的越剧烈
-    Q(1, 1) = 1;
-    Q(2, 2) = 1;
-    Q(3, 3) = 1;
+    Q(1, 1) = 3;
+    Q(2, 2) = 10;
+    Q(3, 3) = 4;
 
     Eigen::Matrix<double, 1, 1> R;
-    /*R(0, 0) = 35.0;  50*/
-    R(0, 0) = 100.0;
+    /*R(0, 0) = 35.0;  100*/
+    R(0, 0) = 15.0;
     // MatrixXd矩阵只能用(),VectorXd不仅能用()还能用[]
     Eigen::Matrix<double, 1, 4> k = cal_dlqr(A, B, Q, R);
 
@@ -222,7 +222,7 @@ double lqrControl::cal_forword_angle(Eigen::Matrix<double, 1, 4> k,
     //投影点的曲率final_path.k[index]
     double point_curvature = err_k[4];
     double forword_angle =
-        0.3 * (wheel_base * point_curvature + kv * vx * vx * point_curvature -
+        1.0 * (wheel_base * point_curvature + kv * vx * vx * point_curvature -
         k3 * (b * point_curvature + a * m * vx * vx * point_curvature / cr / (a + b)));
     return forword_angle;
 }

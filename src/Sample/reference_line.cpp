@@ -53,8 +53,8 @@ void referenceLine::sortIndex() {
 	double min_dis = (std::numeric_limits<int>::max)();
 	for (size_t i = 0; i < this->center_point_xy.size(); ++i) {
 		double dis = pow(this->center_point_xy[i].first, 2) + pow(this->center_point_xy[i].second, 2);
-		if (dis < min_dis && center_point_xy[i].first > 0) {
-			// 确保在自车前方
+		if (dis < min_dis && center_point_xy[i].first < 0) {
+			// 确保是位于车身后边最近的点
 			min_dis = dis;
 			index_cen = i;
 		}
@@ -153,8 +153,8 @@ void referenceLine::calc_k_theta() {
 	}
 	std::deque<std::pair<double, double>> dxy_pre = dxy;
 	std::deque<std::pair<double, double>> dxy_after = dxy;
-	dxy_pre.emplace_front(xy_set.front());// 加上第一个数
-	dxy_after.emplace_back(xy_set.back());// 加上最后一个数
+	dxy_pre.emplace_front(dxy.front());// 加上第一个数
+	dxy_after.emplace_back(dxy.back());// 加上最后一个数
 	
 	std::deque<std::pair<double, double>> dxy_final;
 	for (int i = 0; i < xy_set.size(); ++i) {
@@ -182,16 +182,18 @@ void referenceLine::calc_k_theta() {
 	}
 	std::deque<double> dtheta_pre = dtheta;
 	std::deque<double> dtheta_after = dtheta;
-	dtheta_pre.push_front(frenet_theta.front());
-	dtheta_after.push_back(frenet_theta.back());
+	dtheta_pre.push_front(dtheta.front());
+	dtheta_after.push_back(dtheta.back());
+	std::cout << "origin kappa: ";
 	for (int i = 0; i < xy_set.size(); ++i) {
 		double theta_final = (dtheta_pre[i] + dtheta_after[i]) / 2;
 		this->point.push_back({ xy_set[i].first, xy_set[i].second, sin(theta_final) / ds_final[i], frenet_theta[i] });
 		//std::cout << "theta: " << frenet_theta[i] << std::endl;
-		/*if (i == 0) {
-			std::cout << "kappa: " << sin(theta_final) / ds_final[i] << std::endl;
-		}*/
+		if (i < 30) {
+			std::cout << sin(theta_final) / ds_final[i] << "\t";
+		}
 	}
+	std::cout << std::endl;
 }
 
 double referenceLine::calculate_kappa(Point2d_s p1, Point2d_s p2, Point2d_s p3)
