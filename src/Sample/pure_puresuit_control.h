@@ -10,7 +10,7 @@ public:
 	purePursuit() = default;
 	~purePursuit() = default;
 
-	double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar) override;
+	double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) override;
 };
 
 #endif // !__PURE_PURSUIT__

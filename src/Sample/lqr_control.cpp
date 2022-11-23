@@ -9,9 +9,9 @@ lqrControl::lqrControl()
     vy = 0;
 
     //质心侧偏角视为不变
-    cf = -40307.89;
+    cf = -88539.01;
     // 轮胎侧偏刚度
-    cr = -40307.89;
+    cr = -88539.01;
 
     m = 240.1;
 
@@ -34,8 +34,11 @@ lqrControl::lqrControl()
 }
 
 
-double lqrControl::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
+double lqrControl::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar, 
+    PanoSimBasicsBus::Ego* pEgo) {
 	this->vx = -pLidar->items->OBJ_Ego_Vx;
+    this->vy = sqrt(abs(pow(pEgo->speed, 2) - pow(pLidar->items->OBJ_Ego_Vx, 2)));
+    std::cout << "vehicle_cor vy: " << this->vy << std::endl;
 	// 变量再分配
 	std::vector<std::pair<double, double>> trj_point_array;
 	for (auto& Point : targetPath) {
@@ -70,10 +73,12 @@ double lqrControl::theta_angle(const std::vector<std::pair<double, double>>& trj
 }
 
 
-std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
-    std::vector<double>& trj_kappas, double current_post_x, double current_post_y, double car_yaw)
+std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, 
+    std::vector<double>& trj_thetas, std::vector<double>& trj_kappas, double current_post_x, 
+    double current_post_y, double car_yaw)
 {
-    //current_post_x = current_post_x + this->vx * 0.03;// 预测模块
+    //current_post_x = current_post_x + this->vx * 0.2;// 预测模块
+    //current_post_y = current_post_y + this->vy * 0.2;
     std::array<double, 5> err_k;
     int index = 0;
     double min_dis = (std::numeric_limits<int>::max)();
@@ -156,13 +161,13 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_k(std::array<double, 5> err_k)
     Q(2, 2) = 1;
     Q(3, 3) = 1;*/
     Q(0, 0) = 25;// 值越大方向盘摆的越剧烈
-    Q(1, 1) = 3;
+    Q(1, 1) = 3;// 值越大存在误差越大
     Q(2, 2) = 10;
     Q(3, 3) = 4;
 
     Eigen::Matrix<double, 1, 1> R;
     /*R(0, 0) = 35.0;  100*/
-    R(0, 0) = 15.0;
+    R(0, 0) = 35.0;
     // MatrixXd矩阵只能用(),VectorXd不仅能用()还能用[]
     Eigen::Matrix<double, 1, 4> k = cal_dlqr(A, B, Q, R);
 
@@ -236,11 +241,11 @@ double lqrControl::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle
     err << err_k[0], err_k[1], err_k[2], err_k[3];
     double angle = (-k * err + forword_angle) * 180 * 3.67 / M_PI;
     
-    if (angle > 150) {
-        angle = 150;
+    if (angle > 135) {
+        angle = 135;
     }
-    else if (angle < -150) {
-        angle = -150;
+    else if (angle < -135) {
+        angle = -135;
     }
     return angle;
 }

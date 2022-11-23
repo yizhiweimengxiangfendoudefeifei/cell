@@ -1,6 +1,7 @@
 #include "pure_puresuit_control.h"
 
-double purePursuit::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar) {
+double purePursuit::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) {
+	(void)pEgo;
 	int index = 0;
 
 	int forwardIndex = 0;

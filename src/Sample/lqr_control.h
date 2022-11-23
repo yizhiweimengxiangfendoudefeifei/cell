@@ -11,7 +11,7 @@ public:
     lqrControl();
     ~lqrControl() = default;
 
-    double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar) override;
+    double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) override;
 
     // ¼ÆËãÇ°ÂÖ×ª½Ç
     double theta_angle(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,

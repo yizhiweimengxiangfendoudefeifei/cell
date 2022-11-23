@@ -17,7 +17,7 @@ public:
 	virtual ~control()=default;
 
 	// virtual function, base, lqrControl and pure_suit is inherited
-	virtual double calculateCmd(const std::vector<RefPoint> &targetPath, PanoSimSensorBus::Lidar_ObjList_G * pLidar) = 0;
+	virtual double calculateCmd(const std::vector<RefPoint> &targetPath, PanoSimSensorBus::Lidar_ObjList_G * pLidar, PanoSimBasicsBus::Ego* pEgo) = 0;
 
 public:
 	// calc forwardindex
