@@ -73,7 +73,7 @@ void ModelOutput(UserData* userData) {
                 if (referenceline.get_center_point_xy_sort().size() > 0) {
                     Eigen::MatrixXd input = vector_eigen(referenceline.get_center_point_xy_sort());
                     std::vector<std::pair<double, double>> output;
-                    referenceline.average_interpolation(input, output, 0.1, 0.2);
+                    referenceline.average_interpolation(input, output, 0.2, 0.6);
                     referenceline.set_center_point_xy_final(output);
                     std::cout << "+++++++++++++++++++++" << std::endl;
                     /*for (auto line : output) {
