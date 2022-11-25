@@ -55,11 +55,11 @@ void ModelStart(UserData* userData) {
     {
     case 0:
         cout << "lqr init!!!";
-        pGlobal->control_base = std::make_shared<lqrControl>(0.5, 0.1, 0.01);
+        pGlobal->control_base = std::make_shared<lqrControl>(0.9, 0.6, 0.0);
         break;
     case 1:
         cout << "pure_puresuit init!!!";
-        pGlobal->control_base = std::make_shared<purePursuit>(0.5, 0.3, 0.1);
+        pGlobal->control_base = std::make_shared<purePursuit>(0.5, 0.1, 0.01);
         break;
     default:
         break;
@@ -112,7 +112,7 @@ void ModelOutput(UserData* userData) {
 
                 steer = pGlobal->control_base->calculateCmd(targetPathPoint, pLidar, pEgo);
                 int forwardIndex = pGlobal->control_base->calc_forwardIndex(targetPathPoint, pEgo);
-                cout << "sample steer: " << steer << endl;
+                //cout << "sample steer: " << steer << endl;
                 double thr = pGlobal->control_base->calculateThrottleBreak(targetPathPoint, pEgo, forwardIndex);
                 auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
 

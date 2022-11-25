@@ -86,7 +86,9 @@ double lqrControl::theta_angle(const std::vector<std::pair<double, double>>& trj
 std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, 
     std::vector<double>& trj_thetas, std::vector<double>& trj_kappas, double current_post_x, 
     double current_post_y, double car_yaw, int index)
-{
+{   
+    current_post_x += this->vx * 0.08;
+    current_post_y += this->vy * 0.08;
     std::array<double, 5> err_k;
     
     //std::cout << index << "_xy: " << trj_point_array[index].first << "  " << trj_point_array[index].second << std::endl;
@@ -128,7 +130,7 @@ std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, 
     double ephi_d = phi_d - trj_kappas[index] * s_d;
 
     // 计算投影点曲率k
-    double projection_point_curvature = trj_kappas[index+7];
+    double projection_point_curvature = trj_kappas[index+3];
 
     err_k[0] = ed;
     err_k[1] = ed_d;
@@ -166,7 +168,7 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_k(std::array<double, 5> err_k)
 
     Eigen::Matrix<double, 1, 1> R;
     /*R(0, 0) = 35.0;  100*/
-    R(0, 0) = 10.0;//15
+    R(0, 0) = 7.0;//15
     // MatrixXd矩阵只能用(),VectorXd不仅能用()还能用[]
     Eigen::Matrix<double, 1, 4> k = cal_dlqr(A, B, Q, R);
 
@@ -228,7 +230,7 @@ double lqrControl::cal_forword_angle(Eigen::Matrix<double, 1, 4> k,
     //投影点的曲率final_path.k[index]
     double point_curvature = err_k[4];
     double forword_angle =
-        1.0 * (wheel_base * point_curvature + kv * vx * vx * point_curvature -
+        2.0 * (wheel_base * point_curvature + kv * vx * vx * point_curvature -
         k3 * (b * point_curvature + a * m * vx * vx * point_curvature / cr / (a + b)));
     return forword_angle;
 }
@@ -240,27 +242,28 @@ double lqrControl::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle
     err << err_k[0], err_k[1], err_k[2], err_k[3];
 
     // expere
-    double kappa_straight = 0;
+    /*double kappa_straight = 0;
     double kappa_curve = 0;
-    int total_index = index + 20;
-    for (; index < total_index; ++index) {
-        kappa_straight += abs(trj_kappas[index]);
+    int total_index = index + 10;
+    for (int i = index; i < total_index; ++i) {
+        kappa_straight += abs(trj_kappas[i]);
     }
     for (int i = 0; i < index; ++i) {
         kappa_curve += abs(trj_kappas[i]);
     }
-    if (kappa_straight / 20 < 0.01 && kappa_curve/index > 0.05) {
+    if (kappa_straight / 10 < 0.03 && kappa_curve/index > 0.01) {
         std::cout << "will be straight" << std::endl;
         k << 0, 0, 0, 0;
-    }
-    double angle = (-k * err + forword_angle) * 180 * 3.67 / M_PI;
-    std::cout << "-k * err: " << -k * err << "  forword_angle: " << forword_angle << std::endl;
+    }*/
+    double feedback = -k * err;
+    double angle = (feedback + forword_angle) * 180 * 3.67 / M_PI;
+    /*std::cout << "-k * err: " << -k * err << "  forword_angle: " << forword_angle << std::endl;*/
     
-    if (angle > 135) {
-        angle = 135;
+    if (angle > 200) {
+        angle = 200;
     }
-    else if (angle < -135) {
-        angle = -135;
+    else if (angle < -200) {
+        angle = -200;
     }
     return angle;
 }

@@ -7,8 +7,8 @@ double purePursuit::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSi
 	int index = 0;
 
 	int forwardIndex = 0;
-	double minProgDist = 1.5;
-	double progTime = 0.5;
+	double minProgDist = 2.5;
+	double progTime = 0.6;
 	double mainVehicleSpeed = -pLidar->items->OBJ_Ego_Vx;
 	double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 

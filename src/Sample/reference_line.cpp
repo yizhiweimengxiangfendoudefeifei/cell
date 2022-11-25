@@ -188,9 +188,9 @@ void referenceLine::calc_k_theta() {
 		double theta_final = (dtheta_pre[i] + dtheta_after[i]) / 2;
 		this->point.push_back({ xy_set[i].first, xy_set[i].second, sin(theta_final) / ds_final[i], frenet_theta[i] });
 		//std::cout << "theta: " << frenet_theta[i] << std::endl;
-		if (i < 30) {
+		/*if (i < 40) {
 			std::cout << sin(theta_final) / ds_final[i] << "\t";
-		}
+		}*/
 	}
 	std::cout << std::endl;
 }
