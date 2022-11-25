@@ -1,7 +1,7 @@
 #include "lqr_control.h"
 
 
-lqrControl::lqrControl()
+lqrControl::lqrControl(const double kp, const double ki, const double kd) : control(kp,ki,kd)
 {
     // 纵向速度
     vx = 0.1;
@@ -38,7 +38,7 @@ double lqrControl::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSim
     PanoSimBasicsBus::Ego* pEgo) {
 	this->vx = -pLidar->items->OBJ_Ego_Vx;
     this->vy = sqrt(abs(pow(pEgo->speed, 2) - pow(pLidar->items->OBJ_Ego_Vx, 2)));
-    std::cout << "vehicle_cor vy: " << this->vy << std::endl;
+    //std::cout << "vehicle_cor vy: " << this->vy << std::endl;
 	// 变量再分配
 	std::vector<std::pair<double, double>> trj_point_array;
 	for (auto& Point : targetPath) {
@@ -55,7 +55,7 @@ double lqrControl::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSim
 	// 相对坐标，故车辆位置为(0,0)
 	double currentPositionX = 0;
 	double currentPositionY = 0;
-	double car_yaw = 0;// 车身坐标系下用不到
+	double car_yaw = 0;// 角速度
 	double out_angle = theta_angle(trj_point_array, trj_thetas, trj_kappas, currentPositionX, currentPositionY, car_yaw);
     return out_angle;
 }
@@ -63,34 +63,33 @@ double lqrControl::calculateCmd(const std::vector<RefPoint>& targetPath, PanoSim
 double lqrControl::theta_angle(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
 	std::vector<double>& trj_kappas, double currentPositionX, double currentPositionY, double car_yaw)
 {
+    int index = 0;
+    double min_dis = (std::numeric_limits<int>::max)();
+    for (int i = 0; i < trj_point_array.size(); ++i) {
+        double dis = pow(trj_point_array[i].first, 2) + pow(trj_point_array[i].second, 2);
+        if (dis < min_dis) {
 
-	std::array<double, 5> err_k = cal_err_k(trj_point_array, trj_thetas, trj_kappas, currentPositionX, currentPositionY, car_yaw);
+            min_dis = dis;
+            index = i;
+        }
+    }
+
+	std::array<double, 5> err_k = cal_err_k(trj_point_array, trj_thetas, trj_kappas, currentPositionX, currentPositionY, car_yaw, index);
 	Eigen::Matrix<double, 1, 4> k = cal_k(err_k);
 
 	double forword_angle = cal_forword_angle(k, err_k);
-	double angle = cal_angle(k, forword_angle, err_k);
+	double angle = cal_angle(k, forword_angle, err_k, trj_kappas, index);
 	return angle;
 }
 
 
 std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, 
     std::vector<double>& trj_thetas, std::vector<double>& trj_kappas, double current_post_x, 
-    double current_post_y, double car_yaw)
+    double current_post_y, double car_yaw, int index)
 {
-    current_post_x = current_post_x + this->vx * 0.08;// 预测模块
-    current_post_y = current_post_y + this->vy * 0.08;
     std::array<double, 5> err_k;
-    int index = 0;
-    double min_dis = (std::numeric_limits<int>::max)();
-    for (int i = 0; i < trj_point_array.size(); ++i) {
-        double dis = pow(trj_point_array[i].first, 2) + pow(trj_point_array[i].second, 2);
-        if (dis < min_dis) {
-            
-            min_dis = dis;
-            index = i;
-        }
-    }
-    std::cout << index << "_xy: " << trj_point_array[index].first << "  " << trj_point_array[index].second << std::endl;
+    
+    //std::cout << index << "_xy: " << trj_point_array[index].first << "  " << trj_point_array[index].second << std::endl;
     // 找到index后，开始求解投影点
     Eigen::Matrix<double, 2, 1> tor;
     tor << cos(trj_thetas[index]), sin(trj_thetas[index]);
@@ -106,10 +105,10 @@ std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, 
     // nor.transpose()对nor转置
     double ed = nor.transpose() * d_err;
     
-    std::cout << "横向： " << ed << std::endl;
+    //std::cout << "横向： " << ed << std::endl;
 
     double es = tor.transpose() * d_err;
-    std::cout << "纵向： " << es << std::endl;
+    //std::cout << "纵向： " << es << std::endl;
 
     // 投影点的threat角度
     double projection_point_threat = trj_thetas[index] + trj_kappas[index] * es;
@@ -125,11 +124,11 @@ std::array<double, 5> lqrControl::cal_err_k(const std::vector<std::pair<double, 
     double s_d = (vx * cos(phi - projection_point_threat) -
         vy * sin(phi - projection_point_threat)) /
         (1 - trj_kappas[index] * ed);
-    double phi_d = vx * trj_kappas[index];
+    double phi_d = this->vx * trj_kappas[index];
     double ephi_d = phi_d - trj_kappas[index] * s_d;
 
     // 计算投影点曲率k
-    double projection_point_curvature = trj_kappas[index];
+    double projection_point_curvature = trj_kappas[index+7];
 
     err_k[0] = ed;
     err_k[1] = ed_d;
@@ -163,11 +162,11 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_k(std::array<double, 5> err_k)
     Q(0, 0) = 17;// 值越大方向盘摆的越剧烈
     Q(1, 1) = 1;// 值越大存在误差越大
     Q(2, 2) = 24;
-    Q(3, 3) = 2;
+    Q(3, 3) = 4;
 
     Eigen::Matrix<double, 1, 1> R;
     /*R(0, 0) = 35.0;  100*/
-    R(0, 0) = 15.0;//15
+    R(0, 0) = 10.0;//15
     // MatrixXd矩阵只能用(),VectorXd不仅能用()还能用[]
     Eigen::Matrix<double, 1, 4> k = cal_dlqr(A, B, Q, R);
 
@@ -235,18 +234,33 @@ double lqrControl::cal_forword_angle(Eigen::Matrix<double, 1, 4> k,
 }
 
 double lqrControl::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle,
-    std::array<double, 5> err_k)
+    std::array<double, 5> err_k, std::vector<double>& trj_kappas, int index)
 {
     Eigen::Matrix<double, 4, 1> err;
     err << err_k[0], err_k[1], err_k[2], err_k[3];
+
+    // expere
+    double kappa_straight = 0;
+    double kappa_curve = 0;
+    int total_index = index + 20;
+    for (; index < total_index; ++index) {
+        kappa_straight += abs(trj_kappas[index]);
+    }
+    for (int i = 0; i < index; ++i) {
+        kappa_curve += abs(trj_kappas[i]);
+    }
+    if (kappa_straight / 20 < 0.01 && kappa_curve/index > 0.05) {
+        std::cout << "will be straight" << std::endl;
+        k << 0, 0, 0, 0;
+    }
     double angle = (-k * err + forword_angle) * 180 * 3.67 / M_PI;
     std::cout << "-k * err: " << -k * err << "  forword_angle: " << forword_angle << std::endl;
     
-    if (angle > 200) {
-        angle = 200;
+    if (angle > 135) {
+        angle = 135;
     }
-    else if (angle < -200) {
-        angle = -200;
+    else if (angle < -135) {
+        angle = -135;
     }
     return angle;
 }

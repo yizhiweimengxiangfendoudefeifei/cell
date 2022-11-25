@@ -8,10 +8,11 @@
 class lqrControl : public control
 {
 public:
-    lqrControl();
+    lqrControl(const double kp, const double ki, const double kd);
     ~lqrControl() = default;
 
-    double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar, PanoSimBasicsBus::Ego* pEgo) override;
+    double calculateCmd(const std::vector<RefPoint>& targetPath, PanoSimSensorBus::Lidar_ObjList_G* pLidar, 
+        PanoSimBasicsBus::Ego* pEgo) override;
 
     // 计算前轮转角
     double theta_angle(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas,
@@ -19,7 +20,7 @@ public:
 
     // 计算误差 ed ed' ephi ephi'
     std::array<double, 5> cal_err_k(const std::vector<std::pair<double, double>>& trj_point_array, std::vector<double>& trj_thetas, 
-        std::vector<double>& trj_kappas, double current_post_x, double current_post_y, double car_yaw);
+        std::vector<double>& trj_kappas, double current_post_x, double current_post_y, double car_yaw, int index);
 
     // 计算lqr的k1 k2 k3 k4
     Eigen::Matrix<double, 1, 4> cal_k(std::array<double, 5> err_k);
@@ -32,7 +33,8 @@ public:
     double cal_forword_angle(Eigen::Matrix<double, 1, 4> k, std::array<double, 5> err_k);
 
     // 计算角度
-    double cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle, std::array<double, 5> err_k);
+    double cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle, std::array<double, 5> err_k, 
+        std::vector<double>& trj_kappas, int index);
 
 
 private:

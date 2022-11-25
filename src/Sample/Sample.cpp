@@ -31,6 +31,8 @@ struct GlobalData {
     BusAccessor* ego_control, *ego, *ego_extra;
     int times = 0;
     bool flg = false;
+    std::shared_ptr<control> control_base;
+    
 };
 
 void PrintParameters(UserData* userData);
@@ -46,6 +48,22 @@ void ModelStart(UserData* userData) {
     pGlobal->ego = new BusAccessor(userData->busId, "ego", EGO_FORMAT);
     pGlobal->ego_extra = new BusAccessor(userData->busId, "ego_extral", EGO_EXTRA_FORMAT);
     userData->state = pGlobal;
+
+    // control mode 0:lqr  1:pure_pursuit
+    int control_mode = 0;
+    switch (control_mode)
+    {
+    case 0:
+        cout << "lqr init!!!";
+        pGlobal->control_base = std::make_shared<lqrControl>(0.5, 0.1, 0.01);
+        break;
+    case 1:
+        cout << "pure_puresuit init!!!";
+        pGlobal->control_base = std::make_shared<purePursuit>(0.5, 0.3, 0.1);
+        break;
+    default:
+        break;
+    }
 }
 
 void ModelOutput(UserData* userData) {
@@ -75,7 +93,7 @@ void ModelOutput(UserData* userData) {
                     std::vector<std::pair<double, double>> output;
                     referenceline.average_interpolation(input, output, 0.2, 0.6);
                     referenceline.set_center_point_xy_final(output);
-                    std::cout << "+++++++++++++++++++++" << std::endl;
+                    //std::cout << "+++++++++++++++++++++" << std::endl;
                     /*for (auto line : output) {
                         cout << line.first << "   " << line.second << endl;
                     }*/
@@ -89,26 +107,13 @@ void ModelOutput(UserData* userData) {
                 pEgoCtrl = static_cast<EgoControl*>(pGlobal->ego_control->GetHeader());
 
                 double steer = 0;
-                // control mode 0:lqr  1:pure_pursuit
-                std::shared_ptr<control> control_base;
                 std::vector<RefPoint> targetPathPoint = referenceline.point;
-                int forwardIndex = control::calc_forwardIndex(targetPathPoint, pEgo);
-                int control_mode = 0;
-                switch (control_mode)
-                {
-                case 0:
-                    control_base = std::make_shared<lqrControl>();
-                    steer = control_base->calculateCmd(targetPathPoint, pLidar, pEgo);
-                    break;
-                case 1:
-                    control_base = std::make_shared<purePursuit>();
-                    steer = control_base->calculateCmd(targetPathPoint, pLidar, pEgo);
-                    break;
-                default:
-                    break;
-                }
+                
+
+                steer = pGlobal->control_base->calculateCmd(targetPathPoint, pLidar, pEgo);
+                int forwardIndex = pGlobal->control_base->calc_forwardIndex(targetPathPoint, pEgo);
                 cout << "sample steer: " << steer << endl;
-                double thr = control::calculateThrottleBreak(targetPathPoint, pEgo, forwardIndex);
+                double thr = pGlobal->control_base->calculateThrottleBreak(targetPathPoint, pEgo, forwardIndex);
                 auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
 
                 pEgoCtrl->time = userData->time;
