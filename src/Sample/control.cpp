@@ -1,4 +1,4 @@
-#include "control.h"
+ï»¿#include "control.h"
 
 control::control(const double kp, const double ki, const double kd) {
     kp_ = kp;
@@ -84,12 +84,8 @@ double control::PID_Control(double value_target, double value_now) {
 	if (fabs(integral_) > 5) {
 		reset();
 	}
-	else if (integral_ < -3 && this->integral_ + dt * (value_target - value_now) < this->integral_) {
-
-	}
-	else {
-		this->integral_ = this->integral_ + dt * (value_target - value_now); //»ı·Ö»·½Ú
-	}
+	this->error_sub_ = (value_target - value_now) - this->previous_error_;
+	this->integral_ = this->integral_ + dt * (value_target - value_now);
 	if (this->first_init_) {
 		this->first_init_ = false;
 	}
@@ -98,15 +94,10 @@ double control::PID_Control(double value_target, double value_now) {
 	}
 
 	double control_value = this->kp_ * (value_target - value_now) + this->ki_ * this->integral_ + this->kd_ * this->differential_;
-	//¸üĞÂÎó²î
-	std::cout << " target v:" << value_target << " now v:" << value_now << " control_value:" << control_value << " integral_:" << integral_ 
-		 << std::endl;
-
 	this->previous_error_ = value_target - value_now;
-
 	return control_value;
 
-	// ÒÔÏÂÉè¼Æ´æÔÚ´íÎó£¬µ«ÊÇÔÚÊµ¼ÊÊ¹ÓÃÖĞĞ§¹û»¹±È½ÏºÃ
+	// ä»¥ä¸‹è®¾è®¡å­˜åœ¨é”™è¯¯ï¼Œä½†æ˜¯åœ¨å®é™…ä½¿ç”¨ä¸­æ•ˆæœè¿˜æ¯”è¾ƒå¥½
 	//double dt = 0.01;
 	//double kp = 0.30;
 	//double ki = 0.1;
