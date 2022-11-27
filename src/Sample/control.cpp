@@ -65,7 +65,6 @@ double control::calculateThrottleBreak(const std::vector<RefPoint>& targetPath, 
 		this_kappa = farKappa;
 	}
 	if (lastKappa > 0.10) {
-		//std::cout << "this_kappa: " << lastKappa << std::endl;
 		this_kappa = lastKappa;
 	}
 	this_kappa = this_kappa < 0.04 ? 0.04 : this_kappa;// 0.04 7m/s
@@ -77,7 +76,7 @@ double control::calculateThrottleBreak(const std::vector<RefPoint>& targetPath, 
 	std::cout << "targetPath.size() is :" << targetPath.size() << std::endl;
 	std::cout << "this_kappa is :" << this_kappa << std::endl;*/
 	std::cout << pEgo->speed;
-	return PID_Control(max_v > 0.0 ? 5.0 : max_v, pEgo->speed);
+	return PID_Control(max_v > 5.0 ? 5.0 : max_v, pEgo->speed);
 }
 
 double control::PID_Control(double value_target, double value_now) {
@@ -100,6 +99,7 @@ double control::PID_Control(double value_target, double value_now) {
 	this->previous_error_ = value_target - value_now;
 	return control_value;
 
+	// 以下设计存在错误，但是在实际使用中效果还比较好
 	//double dt = 0.01;
 	//double kp = 0.30;
 	//double ki = 0.1;

@@ -156,13 +156,9 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_k(std::array<double, 5> err_k)
 
     // // 设置成单位矩阵
     Eigen::Matrix4d Q;
-     Q.setIdentity(4, 4);
-    /*Q(0, 0) = 60;
+    Q.setIdentity(4, 4);
+    Q(0, 0) = 17;
     Q(1, 1) = 1;
-    Q(2, 2) = 1;
-    Q(3, 3) = 1;*/
-    Q(0, 0) = 17;// 值越大方向盘摆的越剧烈
-    Q(1, 1) = 1;// 值越大存在误差越大
     Q(2, 2) = 24;
     Q(3, 3) = 4;
 
@@ -203,9 +199,6 @@ Eigen::Matrix<double, 1, 4> lqrControl::cal_dlqr(Eigen::Matrix4d A, Eigen::Matri
             (R + Bd.transpose() * p_old * Bd).inverse() *
             Bd.transpose() * p_old * Ad +
             Q;
-        // p.determinant()求行列式
-        // if (std::abs((p_old - p_new).determinant()) <= minValue) {
-        // cwiseAbs()求绝对值、maxCoeff()求最大系数
         if (fabs((p_new - p_old).maxCoeff()) < minValue)
         {
             p_old = p_new;
@@ -241,23 +234,8 @@ double lqrControl::cal_angle(Eigen::Matrix<double, 1, 4> k, double forword_angle
     Eigen::Matrix<double, 4, 1> err;
     err << err_k[0], err_k[1], err_k[2], err_k[3];
 
-    // expere
-    /*double kappa_straight = 0;
-    double kappa_curve = 0;
-    int total_index = index + 10;
-    for (int i = index; i < total_index; ++i) {
-        kappa_straight += abs(trj_kappas[i]);
-    }
-    for (int i = 0; i < index; ++i) {
-        kappa_curve += abs(trj_kappas[i]);
-    }
-    if (kappa_straight / 10 < 0.03 && kappa_curve/index > 0.01) {
-        std::cout << "will be straight" << std::endl;
-        k << 0, 0, 0, 0;
-    }*/
     double feedback = -k * err;
     double angle = (feedback + forword_angle) * 180 * 3.67 / M_PI;
-    /*std::cout << "-k * err: " << -k * err << "  forword_angle: " << forword_angle << std::endl;*/
     
     if (angle > 200) {
         angle = 200;

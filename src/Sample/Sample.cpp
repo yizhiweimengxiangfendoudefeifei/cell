@@ -55,11 +55,11 @@ void ModelStart(UserData* userData) {
     {
     case 0:
         cout << "lqr init!!!";
-        pGlobal->control_base = std::make_shared<lqrControl>(0.9, 0.6, 0.0);
+        pGlobal->control_base = std::make_shared<lqrControl>(0.1, 0.06, 0.0);
         break;
     case 1:
         cout << "pure_puresuit init!!!";
-        pGlobal->control_base = std::make_shared<purePursuit>(0.5, 0.1, 0.01);
+        pGlobal->control_base = std::make_shared<purePursuit>(0.1, 0.06, 0.0);
         break;
     default:
         break;
