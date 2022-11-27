@@ -112,7 +112,7 @@ void ModelOutput(UserData* userData) {
 
                 steer = pGlobal->control_base->calculateCmd(targetPathPoint, pLidar, pEgo);
                 int forwardIndex = pGlobal->control_base->calc_forwardIndex(targetPathPoint, pEgo);
-                //cout << "sample steer: " << steer << endl;
+                cout << "sample steer: " << steer << endl;
                 double thr = pGlobal->control_base->calculateThrottleBreak(targetPathPoint, pEgo, forwardIndex);
                 auto yellodist = referenceline.calculate_yellowdist(referenceline.get_yellow_point_xy_final());
 

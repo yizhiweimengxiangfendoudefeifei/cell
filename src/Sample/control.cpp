@@ -25,8 +25,8 @@ int control::calc_forwardIndex(const std::vector<RefPoint>& targetPath, PanoSimB
 		}
 	}
 	int forwardIndex = 0;
-	double minProgDist = 2.0;// 3.0
-	double progTime = 0.6; // 0.8
+	double minProgDist = 3.5;// 3.5
+	double progTime = 0.8; // 0.8s
 	double mainVehicleSpeed = pEgo->speed;
 	double progDist = mainVehicleSpeed * progTime > minProgDist ? mainVehicleSpeed * progTime : minProgDist;
 
@@ -55,7 +55,6 @@ double control::calculateThrottleBreak(const std::vector<RefPoint>& targetPath, 
 
 	auto nearKappa = calculateKappa(targetPath, index);
 	auto farKappa = calculateKappa(targetPath, forwardIndex);
-	auto morefarKappa = calculateKappa(targetPath, forwardIndex + 20);
 	auto lastKappa = calculateKappa(targetPath, 0);
 	double this_kappa = 0.01;
 	if (nearKappa > farKappa) {
@@ -85,8 +84,12 @@ double control::PID_Control(double value_target, double value_now) {
 	if (fabs(integral_) > 5) {
 		reset();
 	}
-	this->error_sub_ = (value_target - value_now) - this->previous_error_;
-	this->integral_ = this->integral_ + dt * (value_target - value_now); //积分环节
+	else if (integral_ < -3 && this->integral_ + dt * (value_target - value_now) < this->integral_) {
+
+	}
+	else {
+		this->integral_ = this->integral_ + dt * (value_target - value_now); //积分环节
+	}
 	if (this->first_init_) {
 		this->first_init_ = false;
 	}
@@ -96,7 +99,11 @@ double control::PID_Control(double value_target, double value_now) {
 
 	double control_value = this->kp_ * (value_target - value_now) + this->ki_ * this->integral_ + this->kd_ * this->differential_;
 	//更新误差
+	std::cout << " target v:" << value_target << " now v:" << value_now << " control_value:" << control_value << " integral_:" << integral_ 
+		 << std::endl;
+
 	this->previous_error_ = value_target - value_now;
+
 	return control_value;
 
 	// 以下设计存在错误，但是在实际使用中效果还比较好
@@ -114,22 +121,23 @@ double control::PID_Control(double value_target, double value_now) {
 	//if (control_value > 1) control_value = 1;
 	//if (control_value < -1) control_value = -1;
 	////std::cout << "control_value after limit is : " << control_value << std::endl;
+	//std::cout << " target v:" << value_target << " now v:" << value_now << " control_value:" << control_value << std::endl;
 	//value_last = value_now;
 	//return control_value;
 }
 
 double control::calculateKappa(const std::vector<RefPoint>& targetPath, int idx) {
 	Point2d_s p1, p2, p3;
-	if (idx + 10 < targetPath.size()) {
+	if (idx + 25 < targetPath.size()) {
 		p1.x = targetPath[idx].x;
 		p1.y = targetPath[idx].y;
-		p2.x = targetPath[idx + 5].x;
-		p2.y = targetPath[idx + 5].y;
-		p3.x = targetPath[idx + 10].x;
-		p3.y = targetPath[idx + 10].y;
+		p2.x = targetPath[idx + 12].x;
+		p2.y = targetPath[idx + 12].y;
+		p3.x = targetPath[idx + 25].x;
+		p3.y = targetPath[idx + 25].y;
 	}
 	else {
-		int num = idx + 10 - targetPath.size();
+		int num = idx + 25 - targetPath.size();
 		p1.x = targetPath[idx].x;
 		p1.y = targetPath[idx].y;
 		p2.x = targetPath[num].x;
