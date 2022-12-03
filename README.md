@@ -28,7 +28,7 @@
 ## About CICV2022 仿真赛
 本项目为CICV2022仿真赛题1-大学生方程式赛车。  
 项目需要识别两侧红蓝桩桶，生成参考线，控制车辆竞速完成比赛。决赛地图包含多个发卡弯，U型弯，大直道，需要良好的横纵向结合能力方能完成比赛。  
-在这里很感谢CICV比赛承办方和Panosim平台，感谢团队成员的共同努力，最终我们取得全国第一的成绩。
+在这里很感谢CICV比赛承办方和Panosim平台，感谢团队成员的共同努力，最终我们取得全国第一的成绩。  
 仿真平台为Panosim，程序编译使用vs2019。  
 [决赛视频](https://www.bilibili.com/video/BV1Xv4y197wV/?spm_id_from=333.999.0.0&vd_source=b7830616317d04289db089c940d49514)
 
@@ -46,6 +46,9 @@ Simply perform the following steps：
 <!-- USAGE EXAMPLES -->
 ### 代码框架
   ![image](image/代码框架.png)
+### 生成的路径  
+  图中黄色为局部路径。
+  ![image](image/路径.png)
 ### 编译运行
     在vs2019上进行编译，编译生成的dll文件位于相对文件夹\Sample\SampleSchedulerNode\bin\x64\Release\SampleScheduler_142.dll。
     生成的dll文件拷贝到Panosim工作目录D:\PanoSimDatabase\Plugin\Agent中即可。
@@ -88,21 +91,21 @@ R：越大控制越小，不容易过急弯；越小控制越大，容易过急�
 2. 推导过程：  
 在三角形OAC中应用正弦定理：  
 $\frac{l_d}{\sin(2\alpha)}=\frac{R}{\sin\frac{(\pi-2\alpha)}{2}}$，
-化简为：$\sin(\alpha)=\frac{l_d}{2R}(1)  
-\tan\delta=\frac{L}{R}$，化简为：$\delta =\arctan\frac{L}{R}(2)$  
-联立（1）和（2）得：  
+化简为：$\sin(\alpha)=\frac{l_d}{2R}$ (1)  
+$\tan\delta=\frac{L}{R}$，化简为：$\delta =\arctan\frac{L}{R}$ (2)  
+联立（1）、（2）得：  
 $\delta=\arctan\frac{2Lsin\alpha}{l_d}$，
-其中 $\alpha$ 为：$\alpha=\arctan\frac{y_c-y_A}{x_c-c_A}$  
-其中Ld为预瞄距离，R为转弯半径，$\delta=\alpha$。  
+其中 $\alpha$ 为 $\alpha=\arctan\frac{y_c-y_A}{x_c-c_A}$  
+其中Ld为预瞄距离，R为转弯半径，$\delta=\alpha$ 。  
 纯跟踪近似为**比例控制器**，推导如下：  
-横向误差$e_y=l_d*sin\alpha=\frac{l_d^2}{2L}tan\delta=\frac{l_d^2}{2L}\delta$  
-所以纯跟踪本质上是一个比例控制器，跟踪效果由$\frac{l_d^{2}}{2L}$决定，通常定义ld为关于速度的一次多项式。
+横向误差 $e_y=l_d*sin\alpha=\frac{l_d^2}{2L}tan\delta=\frac{l_d^2}{2L}\delta$  
+所以纯跟踪本质上是一个比例控制器，跟踪效果由 $\frac{l_d^{2}}{2L}$ 决定，通常定义ld为关于速度的一次多项式。
 
 #### PID调参
-时域表达$u(t)=u_P(t)+u_I(t)+u_D(t)=K_Pe(t)+K_I\int e(t)dt+K_D\frac{de(t)}{dt}$
+时域表达 $u(t)=u_P(t)+u_I(t)+u_D(t)=K_Pe(t)+K_I\int e(t)dt+K_D\frac{de(t)}{dt}$  
 双环PID是对位置和速度误差进行设计。
   ![image](image/PID设计.png)  
-调参注意事项：
+调参注意事项：  
 Kp：一般情况下不用太大就可以得到较好的收敛速度和精度。  
 Ki：加快收敛速度，会带来超调，一般比Kp要小。  
 Kd：减小静差。
@@ -114,5 +117,5 @@ Kd：减小静差。
 * [JR-Rong](https://github.com/JR-Rong)
 * [rogueyan5](https://github.com/rogueyan5)
 * [yunqilingzhen](https://github.com/yunqilingzhen)
-* [JR-Rong](https://github.com/JR-Rong)
+* [shizhuang-li](https://github.com/shizhuang-li)
 * [clzls](https://github.com/clzls)
