@@ -58,7 +58,7 @@ Simply perform the following steps：
  
 #### LQR理解
 目标函数为：
-$J=e_{rr}^{T}Qe_{rr}+u^{T}Ru$，目标函数此二次型在约束$\dot e_{rr}=Ae_{rr}+Bu$下存在最小值。
+$J=e_{rr}^{T}Qe_{rr}+u^{T}Ru$，目标函数此二次型在约束 $\dot e_{rr}=Ae_{rr}+Bu$ 下存在最小值。
 
 将代价函数化简为：
 
