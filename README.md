@@ -15,22 +15,22 @@
     <!-- <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
     <br /> -->
     <br />
-    <a href=" ">View video Demo</a>
+    <a href="https://www.bilibili.com/video/BV1Xv4y197wV/?spm_id_from=333.999.0.0&vd_source=b7830616317d04289db089c940d49514">View video Demo</a>
     ·
-    <a href=" ">Report Bug</a>
+    <a href="https://github.com/yizhiweimengxiangfendoudefeifei/cell/issues">Report Bug</a>
     ·
-    <a href=" ">Request Feature</a>
+    <a href="https://github.com/yizhiweimengxiangfendoudefeifei/cell/pulls">Request Feature</a>
     <br>
   </p>
 </div>
 
 <!-- ABOUT THE PROJECT -->
 ## About CICV2022 仿真赛
-本项目为CICV2022仿真赛题1-大学生方程式赛车。
-项目需要识别两侧红蓝桩桶，生成参考线，控制车辆竞速完成比赛。决赛地图包含多个发卡弯，U型弯，大直道，需要良好的横纵向结合能力方能完成比赛。
+本项目为CICV2022仿真赛题1-大学生方程式赛车。  
+项目需要识别两侧红蓝桩桶，生成参考线，控制车辆竞速完成比赛。决赛地图包含多个发卡弯，U型弯，大直道，需要良好的横纵向结合能力方能完成比赛。  
 在这里很感谢CICV比赛承办方和Panosim平台，感谢团队成员的共同努力，最终我们取得全国第一的成绩。
-仿真平台为Panosim，程序编译使用vs2019。
-[决赛视频](https://github.com/ApolloAuto/apollo/commit/aa0c5eb66189b86a724206305712cfb337c07619)
+仿真平台为Panosim，程序编译使用vs2019。  
+[决赛视频](https://www.bilibili.com/video/BV1Xv4y197wV/?spm_id_from=333.999.0.0&vd_source=b7830616317d04289db089c940d49514)
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -76,22 +76,22 @@ e_{\varphi}\\
 u[R]u^{T}
 $$
 
-Q11：对应横向误差分析，值越大横向误差越小，反之相反。
-Q22：值变化不大，一般取较小值，比如1。
-Q33：对应航向误差分析，值越大航向误差越小，反之相反。
-Q44：值变化不大，一般取较小值，比如1。
+Q11：对应横向误差分析，值越大横向误差越小，反之相反。  
+Q22：值变化不大，一般取较小值，比如1。  
+Q33：对应航向误差分析，值越大航向误差越小，反之相反。  
+Q44：值变化不大，一般取较小值，比如1。  
 R：越大控制越小，不容易过急弯；越小控制越大，容易过急弯，控制不稳定。
 
 #### 纯跟踪设计
 ![image](image/纯跟踪.png)
 1. 车辆在行驶过程中需要预瞄道路上的一点来计算转角。
-2. 推导过程：
-在三角形OAC中应用正弦定理：
+2. 推导过程：  
+在三角形OAC中应用正弦定理：  
 $\frac{l_d}{\sin(2\alpha)}=\frac{R}{\sin\frac{(\pi-2\alpha)}{2}}$，
-化简为：$\sin(\alpha)=\frac{l_d}{2R}(1)\\ \tan\delta=\frac{L}{R}\quad$，
-化简为：$\delta =\arctan\frac{L}{R}(2)$
-联立（1）和（2）得：
-$\delta=\arctan\frac{2Lsin\alpha}{l_d}$
+化简为：$\sin(\alpha)=\frac{l_d}{2R}(1)  
+\tan\delta=\frac{L}{R}$，化简为：$\delta =\arctan\frac{L}{R}(2)$  
+联立（1）和（2）得：  
+$\delta=\arctan\frac{2Lsin\alpha}{l_d}$，
 其中 $\alpha$ 为：$\alpha=\arctan\frac{y_c-y_A}{x_c-c_A}$  
 其中Ld为预瞄距离，R为转弯半径，$\delta=\alpha$。  
 纯跟踪近似为**比例控制器**，推导如下：  
