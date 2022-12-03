@@ -45,7 +45,7 @@ Simply perform the following steps：
   
 <!-- USAGE EXAMPLES -->
 ### 代码框架
-    ![image](image/代码框架.png)
+  ![image](image/代码框架.png)
 ### 编译运行
     在vs2019上进行编译，编译生成的dll文件位于相对文件夹\Sample\SampleSchedulerNode\bin\x64\Release\SampleScheduler_142.dll。
     生成的dll文件拷贝到Panosim工作目录D:\PanoSimDatabase\Plugin\Agent中即可。
@@ -55,9 +55,12 @@ Simply perform the following steps：
  
 #### LQR理解
 目标函数为：
-J=e_{rr}^{T}Qe_{rr}+u^{T}Ru，目标函数此二次型在约束$\dot e_{rr}=Ae_{rr}+Bu$下存在最小值。
+$J=e_{rr}^{T}Qe_{rr}+u^{T}Ru$，目标函数此二次型在约束$\dot e_{rr}=Ae_{rr}+Bu$下存在最小值。
+
 将代价函数化简为：
-$J=[e_d,\dot e_d,e_{\varphi},\dot e_{\varphi}]
+
+$$
+J=[e_d,\dot e_d,e_{\varphi},\dot e_{\varphi}]
 \begin{bmatrix}
 Q_{11}&0&0&0\\
 0&Q_{22}&0&0\\
@@ -70,7 +73,9 @@ e_{d}\\
 e_{\varphi}\\
 \dot e_{\varphi}
 \end{bmatrix}+
-u[R]u^{T}$
+u[R]u^{T}
+$$
+
 Q11：对应横向误差分析，值越大横向误差越小，反之相反。
 Q22：值变化不大，一般取较小值，比如1。
 Q33：对应航向误差分析，值越大航向误差越小，反之相反。
@@ -82,24 +87,24 @@ R：越大控制越小，不容易过急弯；越小控制越大，容易过急�
 1. 车辆在行驶过程中需要预瞄道路上的一点来计算转角。
 2. 推导过程：
 在三角形OAC中应用正弦定理：
-$\frac{l_d}{sin(2\alpha)}=\frac{R}{sin\frac{(\pi-2\alpha)}{2}}\quad 
-化简为：sin(\alpha)=\frac{l_d}{2R}(1)\\
-tan\delta=\frac{L}{R}\quad 化简为：\delta =arctan\frac{L}{R}(2)$
+$\frac{l_d}{\sin(2\alpha)}=\frac{R}{\sin\frac{(\pi-2\alpha)}{2}}$，
+化简为：$\sin(\alpha)=\frac{l_d}{2R}(1)\\ \tan\delta=\frac{L}{R}\quad$，
+化简为：$\delta =\arctan\frac{L}{R}(2)$
 联立（1）和（2）得：
-$\delta=arctan\frac{2Lsin\alpha}{l_d}$
-$其中\alpha为：\alpha=arctan\frac{y_c-y_A}{x_c-c_A}$
-其中Ld为预瞄距离，R为转弯半径，$\delta=\alpha$。
-纯跟踪近似为**比例控制器**，推导如下：
-横向误差$e_y=l_d*sin\alpha=\frac{l_d^2}{2L}tan\delta=\frac{l_d^2}{2L}\delta$
+$\delta=\arctan\frac{2Lsin\alpha}{l_d}$
+其中 $\alpha$ 为：$\alpha=\arctan\frac{y_c-y_A}{x_c-c_A}$  
+其中Ld为预瞄距离，R为转弯半径，$\delta=\alpha$。  
+纯跟踪近似为**比例控制器**，推导如下：  
+横向误差$e_y=l_d*sin\alpha=\frac{l_d^2}{2L}tan\delta=\frac{l_d^2}{2L}\delta$  
 所以纯跟踪本质上是一个比例控制器，跟踪效果由$\frac{l_d^{2}}{2L}$决定，通常定义ld为关于速度的一次多项式。
 
 #### PID调参
 时域表达$u(t)=u_P(t)+u_I(t)+u_D(t)=K_Pe(t)+K_I\int e(t)dt+K_D\frac{de(t)}{dt}$
 双环PID是对位置和速度误差进行设计。
-![image](image/PID设计.png)
+  ![image](image/PID设计.png)  
 调参注意事项：
-Kp：一般情况下不用太大就可以得到较好的收敛速度和精度。
-Ki：加快收敛速度，会带来超调，一般比Kp要小。
+Kp：一般情况下不用太大就可以得到较好的收敛速度和精度。  
+Ki：加快收敛速度，会带来超调，一般比Kp要小。  
 Kd：减小静差。
 
 <!-- ACKNOWLEDGMENTS -->
