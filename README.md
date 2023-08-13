@@ -107,8 +107,8 @@ $\delta=\arctan\frac{2Lsin\alpha}{l_d}$，
   ![image](image/PID设计.png)  
 调参注意事项：  
 Kp：一般情况下不用太大就可以得到较好的收敛速度和精度。  
-Ki：加快收敛速度，会带来超调，一般比Kp要小。  
-Kd：减小静差。
+Ki：一般比Kp要小，减小静差。
+Kd：避免超调。
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
